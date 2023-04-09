@@ -1,0 +1,20 @@
+{
+  "build": {
+    "development": {
+      "env": {
+        "EXPO_RELEASE_CHANNEL": "development"
+      },
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_RELEASE_CHANNEL": "production"
+      },
+      "distribution": "internal"
+    }
+  }
+}
