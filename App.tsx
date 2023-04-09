@@ -1,40 +1,31 @@
-import React, { useEffect, useState } from "react";
-import { Text, View } from "react-native";
-import Entypo from "@expo/vector-icons/Entypo";
-import * as SplashScreen from "expo-splash-screen";
-import * as Font from "expo-font";
+import React from "react";
+import styled from "styled-components/native";
 
+// hooks
+import { useCacheApp } from "./src/libs/useCache";
+
+//components
 import SplashScreenComponent from "./src/components/SplashScreen";
+import Navigation from "./src/screens/navigation";
 
-SplashScreen.preventAutoHideAsync();
-SplashScreen.hideAsync();
-
-export default function App() {
-  const [appIsReady, setAppIsReady] = useState(false);
-
-  useEffect(() => {
-    async function prepare() {
-      try {
-        await Font.loadAsync(Entypo.font);
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setAppIsReady(true);
-      }
-    }
-
-    prepare();
-  }, []);
+const App = () => {
+  const { appIsReady } = useCacheApp();
 
   if (!appIsReady) {
     return <SplashScreenComponent />;
   }
 
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>SplashScreen Demo! 👋</Text>
-      <Entypo name="rocket" size={30} />
-    </View>
+    <SafeAreaViewContainer>
+      <Navigation />
+    </SafeAreaViewContainer>
   );
+};
+
+const SafeAreaViewContainer = styled.SafeAreaView`
+  height: 100%;
+`;
+
+export default function Main() {
+  return <App />;
 }
