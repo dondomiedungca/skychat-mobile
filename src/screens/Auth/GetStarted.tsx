@@ -1,17 +1,20 @@
-import React from "react";
-import styled from "styled-components/native";
-import { AntDesign } from "@expo/vector-icons";
+import React from 'react';
+import styled from 'styled-components/native';
+import { AntDesign } from '@expo/vector-icons';
 
 // components
-import MainContainer from "../../components/MainContainer";
-import { CustomButton } from "../../components/Buttons";
-import { Typography } from "../../components/Typography";
+import MainContainer from '../../components/MainContainer';
+import { CustomButton } from '../../components/Buttons';
+import { Typography } from '../../components/Typography';
 
 // assets
-import Logo from "./../../../assets/png/logo-no-background.png";
-import Colors from "../../types/Colors";
+import Logo from './../../../assets/png/logo-no-background.png';
+import Colors from '../../types/Colors';
 
-export const GetStarted = () => {
+// hooks and refs
+import { navigate } from '../../libs/rootNavigation';
+
+export const GetStarted: React.FC<any> = () => {
   return (
     <MainContainer>
       <Container>
@@ -19,7 +22,7 @@ export const GetStarted = () => {
         <CustomButton
           style={{ marginTop: 30, width: 170 }}
           label="GET STARTED"
-          onPress={() => {}}
+          onPress={() => navigate('StartAccount')}
           textColor={Colors.white}
           iconRight={
             <AntDesign name="arrowright" size={20} color={Colors.white} />
@@ -39,7 +42,7 @@ export const GetStarted = () => {
           size={12}
         />
         <Typography
-          title="Copyright © 2023 All Rights Reserved"
+          title={`Copyright © ${new Date().getFullYear()} All Rights Reserved`}
           color={Colors.secondary}
           size={10}
         />
@@ -58,6 +61,6 @@ const Container = styled.View`
 `;
 
 const LogoImage = styled.Image`
-  height: 120px;
+  height: 170px;
   resize-mode: contain;
 `;

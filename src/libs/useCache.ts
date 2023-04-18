@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import * as Font from "expo-font";
-import { Asset } from "expo-asset";
-import * as SplashScreen from "expo-splash-screen";
+import { useState, useEffect } from 'react';
+import * as Font from 'expo-font';
+import { Asset } from 'expo-asset';
+import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
 SplashScreen.hideAsync();
@@ -20,17 +20,27 @@ export const useCacheApp = () => {
   };
 
   const images = [
-    require("./../../assets/png/logo-black.png"),
-    require("./../../assets/png/logo-color.png"),
-    require("./../../assets/png/logo-no-background.png"),
-    require("./../../assets/png/logo-white.png"),
-    require("./../../assets/png/mobile-icon.png"),
+    require('./../../assets/png/logo-black.png'),
+    require('./../../assets/png/logo-color.png'),
+    require('./../../assets/png/logo-no-background.png'),
+    require('./../../assets/png/logo-white.png'),
+    require('./../../assets/png/adaptive-icon.png'),
+    require('./../../assets/png/icon.png'),
   ];
 
   const fonts = [
-    { Roboto: require("./../../assets/fonts/Roboto/Roboto-Regular.ttf") },
+    { Roboto: require('./../../assets/fonts/Roboto/Roboto-Regular.ttf') },
     {
-      "Roboto-Medium": require("./../../assets/fonts/Roboto/Roboto-Medium.ttf"),
+      'Roboto-Medium': require('./../../assets/fonts/Roboto/Roboto-Medium.ttf'),
+    },
+    {
+      'Roboto-Thin': require('./../../assets/fonts/Roboto/Roboto-Thin.ttf'),
+    },
+    {
+      'Roboto-Light': require('./../../assets/fonts/Roboto/Roboto-Light.ttf'),
+    },
+    {
+      'Roboto-Bold': require('./../../assets/fonts/Roboto/Roboto-Bold.ttf'),
     },
   ];
 

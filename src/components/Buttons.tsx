@@ -1,7 +1,7 @@
-import React from "react";
-import { View } from "react-native";
-import styled from "styled-components/native";
-import Colors from "../types/Colors";
+import React from 'react';
+import styled from 'styled-components/native';
+import Colors from '../types/Colors';
+import { Button } from 'react-native-paper';
 
 const hex2rgb = (hex: string) => {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -12,14 +12,15 @@ const hex2rgb = (hex: string) => {
 };
 
 interface CustomButtonProps {
-  mode?: "outlined" | "contained";
+  mode?: 'outlined' | 'contained';
   textColor?: string;
-  label: string;
+  label?: string | React.ReactNode;
   onPress: () => void;
   background?: string;
   iconRight?: React.ReactNode;
   iconLeft?: React.ReactNode;
   style?: any;
+  isCircle?: boolean;
 }
 
 export const CustomButton: React.FC<CustomButtonProps> = ({
@@ -31,24 +32,26 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
   iconRight,
   iconLeft,
   style,
+  isCircle,
 }) => {
   const { r, g, b } = hex2rgb(background || Colors.primary);
 
   return (
-    <View
+    <ButtonContainer
       style={{
-        borderRadius: 5,
-        overflow: "hidden",
+        borderRadius: isCircle ? 100 : 5,
         ...style,
       }}
     >
       <StyledPressable
+        isCircle={isCircle}
+        style={{ borderRadius: isCircle ? 100 : 5 }}
         mode={mode}
         background={background}
         onPress={onPress}
         android_ripple={{
           color:
-            mode === "outlined"
+            mode === 'outlined'
               ? `rgba(${r}, ${g}, ${b}, .5)`
               : `rgba(0, 0, 0, .5)`,
           borderless: false,
@@ -60,23 +63,66 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
           <StyledText textColor={textColor}>{iconRight}</StyledText>
         </TextContainer>
       </StyledPressable>
-    </View>
+    </ButtonContainer>
+  );
+};
+
+type CustomButtonV2Props = {
+  mode?: 'text' | 'outlined' | 'contained' | 'elevated' | 'contained-tonal';
+  width?: string;
+  height?: string;
+  children: any;
+  icon?: (() => React.ReactNode) | string;
+  textColor?: string;
+  style?: any;
+  backgroundColor?: string;
+  onPress?: () => void;
+  [x: string]: any;
+};
+
+export const CustomButtonV2: React.FC<CustomButtonV2Props> = ({
+  mode = 'elevated',
+  width,
+  height,
+  children,
+  icon,
+  textColor,
+  style,
+  backgroundColor,
+  onPress,
+  ...rest
+}) => {
+  return (
+    <StyledCustomButtonV2
+      mode={mode}
+      width={width}
+      height={height}
+      icon={icon}
+      textColor={textColor}
+      compact
+      style={style}
+      buttonColor={backgroundColor}
+      onPress={onPress}
+      {...rest}
+    >
+      {children}
+    </StyledCustomButtonV2>
   );
 };
 
 const StyledPressable = styled.Pressable<{
   background?: string;
-  mode?: "outlined" | "contained";
+  mode?: 'outlined' | 'contained';
+  isCircle?: boolean;
 }>`
     background: ${({ background }) =>
       background ? background : Colors.primary}
-    padding: 8px 12px;
-    border-radius: 5px;
+    padding: ${({ isCircle }) => (isCircle ? '8px' : '8px 12px')};
     ${({ mode, background }) =>
-      mode === "outlined" && {
+      mode === 'outlined' && {
         borderWidth: 1,
         borderColor: background ? background : Colors.primary,
-        background: "transparent",
+        background: 'transparent',
       }}
 `;
 
@@ -91,4 +137,16 @@ const TextContainer = styled.View`
   justify-content: center;
   align-items: center;
   flex-direction: row;
+`;
+
+const ButtonContainer = styled.View`
+  overflow: hidden;
+`;
+
+const StyledCustomButtonV2 = styled(Button)<{
+  width?: string;
+  height?: string;
+}>`
+  width: ${({ width }) => width || '200px'};
+  height: ${({ height }) => height || 'auto'};
 `;
