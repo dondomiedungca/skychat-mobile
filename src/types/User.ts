@@ -8,8 +8,8 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at?: Date;
+  updated_at?: Date;
   verified_at?: Date;
   is_deleted?: Boolean;
   deleted_at?: Date;

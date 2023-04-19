@@ -12,17 +12,17 @@ export const useFetchEffect = <Data>(
   propsToWatch: UseApiReturnProps,
   props: FetchEffectProps<Data>,
 ) => {
-  const { isLoading, error, response, success } = propsToWatch;
+  const { isLoading, error, data, success } = propsToWatch;
   const { onSuccess, onData, onError, dependencies } = props;
 
   useEffect(() => {
-    if (response !== null && !error && !isLoading) {
-      onSuccess?.(response);
-      response && onData?.(response);
+    if (data !== null && !error && !isLoading) {
+      onSuccess?.(data);
+      data && onData?.(data);
     }
     if (error && !isLoading) {
       if (onError === null) return;
       onError && onError(error);
     }
-  }, [isLoading, error, response, success, ...(dependencies || [])]);
+  }, [isLoading, error, data, success, ...(dependencies || [])]);
 };

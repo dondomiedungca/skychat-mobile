@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import styled from 'styled-components/native';
 import { AntDesign } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -18,8 +18,11 @@ import { AuthStackParamList } from '../navigation';
 import TextInput from '../../components/TextInput';
 import useMethodWrapper from '../../libs/useWrapper';
 
-// hooks
-import { GoogleUser, useGoogleAuth } from './../../libs/useGoogle';
+// hooks and context
+import { useGoogleAuth } from './../../libs/useGoogle';
+import { useFetchEffect } from '../../libs/useFetchEffect';
+import { navigate } from '../../libs/rootNavigation';
+import { UserContext } from './context/UserContext';
 
 type HangoutScreenProps = {
   navigation: StackNavigationProp<AuthStackParamList, 'StartAccount'>;
@@ -27,8 +30,8 @@ type HangoutScreenProps = {
 
 export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState<string>('');
-
-  const { promptAsync } = useGoogleAuth();
+  const { user } = useContext(UserContext);
+  const { promptAsync, ...handleGoogleAuth } = useGoogleAuth();
 
   const Header = () =>
     navigation.canGoBack() ? (
@@ -38,6 +41,14 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
         label={<AntDesign name="arrowleft" size={20} color={Colors.white} />}
       />
     ) : null;
+
+  useFetchEffect(handleGoogleAuth, {
+    onData: (data) => {
+      if (!!data && !handleGoogleAuth.isLoading && !user) {
+        navigate('GetStarted');
+      }
+    },
+  });
 
   return (
     <MainContainer header={<Header />}>

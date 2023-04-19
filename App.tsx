@@ -10,6 +10,7 @@ import { useCacheApp } from './src/libs/useCache';
 //components
 import SplashScreenComponent from './src/components/SplashScreen';
 import Navigation from './src/screens/navigation';
+import UserContextComponent from './src/screens/Auth/context/UserContext';
 
 const App = () => {
   const { appIsReady } = useCacheApp();
@@ -34,7 +35,11 @@ const SafeAreaViewContainer = styled.SafeAreaView`
 `;
 
 export default function Main() {
-  return <App />;
+  return (
+    <UserContextComponent>
+      <App />
+    </UserContextComponent>
+  );
 }
 
 AppRegistry.registerComponent('Skychat', () => Main);

@@ -1,13 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
 import * as SplashScreen from 'expo-splash-screen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import jwtDecode from 'jwt-decode';
+
+// hooks and context
+import { useValidateAccessToken } from './useUser';
+import { AxiosResponse } from 'axios';
+import { UserContext } from '../screens/Auth/context/UserContext';
+import { HttpError } from './useApi';
 
 SplashScreen.preventAutoHideAsync();
 SplashScreen.hideAsync();
 
 export const useCacheApp = () => {
   const [appIsReady, setAppIsReady] = useState<boolean>(false);
+  const { setUser } = useContext(UserContext);
+  const { makeRequest } = useValidateAccessToken();
 
   const cacheImages = (images: any[]) => {
     return images.map((image) => {
@@ -17,6 +27,26 @@ export const useCacheApp = () => {
 
   const cacheFonts = (fonts: any[]) => {
     return fonts.map((font) => Font.loadAsync(font));
+  };
+
+  const validateAccesstoken = async () => {
+    const accessToken = await AsyncStorage.getItem('ACCESS_TOKEN');
+    if (!!accessToken) {
+      const response: AxiosResponse & HttpError = await makeRequest();
+      console.log('useCache', response);
+      if (
+        !response?.hasOwnProperty('error') &&
+        !response?.hasOwnProperty('statusCode')
+      ) {
+        setUser({
+          id: response?.data?.id,
+          firstName: response?.data?.firstName,
+          lastName: response?.data?.lastName,
+          email: response?.data?.email,
+          roles: response?.data?.roles,
+        });
+      }
+    }
   };
 
   const images = [
@@ -53,7 +83,11 @@ export const useCacheApp = () => {
 
         const fontAssets = cacheFonts(fonts);
 
-        await Promise.all([...imageAssets, ...fontAssets]);
+        await Promise.all([
+          ...imageAssets,
+          ...fontAssets,
+          validateAccesstoken(),
+        ]);
       } catch (e) {
         console.warn(e);
       } finally {

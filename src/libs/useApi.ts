@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import Constants from 'expo-constants';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsMountedRef } from './useIsMountedRef';
 
-const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
+// const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
+const BASE_URL = 'http://192.168.0.32:3000';
 
 export enum HTTPMethod {
   POST = 'post',
@@ -16,10 +17,16 @@ export enum HTTPMethod {
 
 export type UseApiReturnProps = {
   isLoading: boolean;
-  response: any;
+  data: any;
   success: boolean;
   error: Error;
-  fetch: (payload: any) => void;
+  makeRequest?: (payload?: any) => any;
+};
+
+export type HttpError = {
+  error: string;
+  message: string;
+  statusCode: number;
 };
 
 export const useApi = (
@@ -28,7 +35,7 @@ export const useApi = (
   overrideURL?: boolean,
 ): UseApiReturnProps => {
   const [isLoading, setLoading] = useState<boolean>(false);
-  const [response, setResponse] = useState<any>(undefined);
+  const [data, setData] = useState<any>(undefined);
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<any>(undefined);
   const isMounted = useIsMountedRef();
@@ -37,31 +44,68 @@ export const useApi = (
   const CancelToken = axios.CancelToken;
   const source = CancelToken.source();
 
-  const fetch = (payload?: any) => {
-    const handleFetch = async () => {
-      const ACCESS_TOKEN = await AsyncStorage.getItem('ACCESS_TOKEN');
-
-      const headers = {
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-        'Content-Type': 'application/json',
-      };
-
-      setLoading(true);
-
-      axios[method](url, { ...payload, cancelToken: source }, { headers })
-        .then((response) => {
-          setSuccess(true);
-          setResponse(response);
-        })
-        .catch((err) => {
-          setError(error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+  const fetch = async (payload?: any): Promise<AxiosResponse | HttpError> => {
+    let response;
+    const ACCESS_TOKEN = await AsyncStorage.getItem('ACCESS_TOKEN');
+    const headers = {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      'Content-Type': 'application/json',
     };
-
-    handleFetch();
+    try {
+      setLoading(true);
+      setError(false);
+      setSuccess(false);
+      let localResponse = await axios[method](
+        url,
+        { ...payload, cancelToken: source },
+        { headers },
+      );
+      response = localResponse.data;
+      setData(localResponse.data);
+      setSuccess(true);
+    } catch (error) {
+      setError(error);
+      if ((error as any)?.response?.data?.statusCode == 403) {
+        console.log('refetch');
+        const REFRESH_TOKEN = await AsyncStorage.getItem('REFRESH_TOKEN');
+        const refetch = await axios.post(
+          `${BASE_URL}/token/refresh-token`,
+          {
+            cancelToken: source,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${REFRESH_TOKEN}`,
+            },
+          },
+        );
+        const recreatedAccessToken = refetch.data;
+        if (recreatedAccessToken) {
+          await AsyncStorage.setItem(
+            'ACCESS_TOKEN',
+            recreatedAccessToken.accessToken,
+          );
+          let localResponse = await axios[method](
+            url,
+            { ...payload, cancelToken: source },
+            {
+              headers: {
+                Authorization: `Bearer ${recreatedAccessToken.accessToken}`,
+              },
+            },
+          );
+          response = localResponse.data;
+        } else {
+          response = {
+            ...(error as any)?.response?.data,
+            error: new Error('Forbidden error'),
+          };
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+    return response;
   };
 
   useEffect(() => {
@@ -72,9 +116,9 @@ export const useApi = (
 
   return {
     isLoading,
-    response,
+    data,
     success,
     error,
-    fetch,
+    makeRequest: fetch,
   };
 };

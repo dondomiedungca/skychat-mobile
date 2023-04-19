@@ -4,6 +4,7 @@ import { ANDROID_CLIENT_ID, EXPO_CLIENT_ID, IOS_CLIENT_ID } from '@env';
 
 // hooks
 import { useSigninWithGoogle } from './useUser';
+import { UseApiReturnProps } from './useApi';
 
 export type GoogleUser = {
   id: string;
@@ -16,9 +17,11 @@ export type GoogleUser = {
   locale: string;
 };
 
-export const useGoogleAuth = () => {
+export const useGoogleAuth = (): UseApiReturnProps & {
+  promptAsync: () => void;
+} => {
   const [token, setToken] = useState<string | undefined>('');
-  const { fetch } = useSigninWithGoogle();
+  const { makeRequest, ...handleSigninGoogle } = useSigninWithGoogle();
 
   const [, response, promptAsync] = Google.useAuthRequest({
     androidClientId: ANDROID_CLIENT_ID,
@@ -27,22 +30,8 @@ export const useGoogleAuth = () => {
   });
 
   useEffect(() => {
-    try {
-      if (!token) throw { message: 'No access token provided' };
-      fetch(token);
-
-      // const response = await fetch(
-      //   'https://www.googleapis.com/userinfo/v2/me',
-      //   {
-      //     headers: { Authorization: `Bearer ${token}` },
-      //   },
-      // );
-
-      // const user = await response.json();
-      // onSuccess && onSuccess(user);
-    } catch (error) {
-      console.log(error);
-    }
+    if (!token) return;
+    makeRequest?.(token);
   }, [token]);
 
   useEffect(() => {
@@ -53,5 +42,7 @@ export const useGoogleAuth = () => {
 
   return {
     promptAsync,
+    makeRequest,
+    ...handleSigninGoogle,
   };
 };
