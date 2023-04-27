@@ -10,6 +10,7 @@ import { useValidateAccessToken } from './useUser';
 import { AxiosResponse } from 'axios';
 import { UserContext } from '../screens/Auth/context/UserContext';
 import { HttpError } from './useApi';
+import { User } from '../types/User';
 
 SplashScreen.preventAutoHideAsync();
 SplashScreen.hideAsync();
@@ -32,18 +33,18 @@ export const useCacheApp = () => {
   const validateAccesstoken = async () => {
     const accessToken = await AsyncStorage.getItem('ACCESS_TOKEN');
     if (!!accessToken) {
-      const response: AxiosResponse & HttpError = await makeRequest();
-      console.log('useCache', response);
+      const response: User & HttpError = await makeRequest();
       if (
         !response?.hasOwnProperty('error') &&
         !response?.hasOwnProperty('statusCode')
       ) {
         setUser({
-          id: response?.data?.id,
-          firstName: response?.data?.firstName,
-          lastName: response?.data?.lastName,
-          email: response?.data?.email,
-          roles: response?.data?.roles,
+          id: response?.id,
+          firstName: response?.firstName,
+          lastName: response?.lastName,
+          email: response?.email,
+          roles: response?.roles,
+          ...(response?.picture && { picture: response?.picture }),
         });
       }
     }
@@ -89,7 +90,6 @@ export const useCacheApp = () => {
           validateAccesstoken(),
         ]);
       } catch (e) {
-        console.warn(e);
       } finally {
         setAppIsReady(true);
       }

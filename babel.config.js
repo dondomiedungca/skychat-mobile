@@ -16,6 +16,7 @@ module.exports = function (api) {
           path: './src/environments/.env',
         },
       ],
+      'react-native-reanimated/plugin',
     ],
   };
 };

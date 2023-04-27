@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import styled from 'styled-components/native';
 import { AntDesign } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Image, ScrollView, Dimensions } from 'react-native';
+import { Image } from 'react-native';
 
 // components
 import MainContainer from '../../components/MainContainer';
@@ -14,18 +14,18 @@ import Logo from './../../../assets/png/logo-no-background.png';
 import Phone from './../../../assets/icons/phone.png';
 import Google from './../../../assets/icons/google.png';
 import Colors from '../../types/Colors';
-import { AuthStackParamList } from '../navigation';
+import { RootParamList } from '../navigation';
 import TextInput from '../../components/TextInput';
 import useMethodWrapper from '../../libs/useWrapper';
 
 // hooks and context
 import { useGoogleAuth } from './../../libs/useGoogle';
 import { useFetchEffect } from '../../libs/useFetchEffect';
-import { navigate } from '../../libs/rootNavigation';
 import { UserContext } from './context/UserContext';
+import { navigate } from '../../libs/rootNavigation';
 
 type HangoutScreenProps = {
-  navigation: StackNavigationProp<AuthStackParamList, 'StartAccount'>;
+  navigation: StackNavigationProp<RootParamList>;
 };
 
 export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
@@ -44,14 +44,18 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
 
   useFetchEffect(handleGoogleAuth, {
     onData: (data) => {
-      if (!!data && !handleGoogleAuth.isLoading && !user) {
-        navigate('GetStarted');
+      if (!!data && !handleGoogleAuth.isLoading && !!user) {
+        navigation.replace('Home', {
+          screen: 'ChatHome',
+          params: { screen: 'Account' },
+        });
       }
     },
+    dependencies: [user],
   });
 
   return (
-    <MainContainer header={<Header />}>
+    <MainContainer header={<Header />} isLoading={handleGoogleAuth.isLoading}>
       <Container>
         <LogoImage source={Logo} />
         <Typography
@@ -97,7 +101,7 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
         </SocialContainer>
         <CustomAccountContainer>
           <Typography
-            style={{ marginTop: 25 }}
+            style={{ marginTop: 10 }}
             title="OR"
             color={Colors.secondary}
             fontFamily="Roboto-Medium"
@@ -105,8 +109,9 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
           />
           <TextInput
             color={Colors.primary}
-            style={{ marginTop: 1 }}
+            style={{ marginTop: 5 }}
             width="100%"
+            height="45px"
             label="Email"
             value={email}
             onChange={setEmail}

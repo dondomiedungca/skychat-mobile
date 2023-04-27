@@ -7,7 +7,12 @@ interface TypographyProps {
   size: number;
   color: string;
   style?: any;
-  fontFamily?: 'Roboto' | 'Roboto-Medium';
+  fontFamily?:
+    | 'Roboto'
+    | 'Roboto-Medium'
+    | 'Roboto-Bold'
+    | 'Roboto-Thin'
+    | 'Roboto-Light';
 }
 
 export const Typography: React.FC<TypographyProps> = ({

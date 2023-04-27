@@ -1,8 +1,10 @@
 import {
   NavigatorScreenParams,
+  DrawerActions,
   createNavigationContainerRef,
-} from "@react-navigation/native";
-import { RootParamList } from "../screens/navigation";
+  StackActions,
+} from '@react-navigation/native';
+import { RootParamList } from '../screens/navigation';
 
 type ScreenParams = Partial<NavigatorScreenParams<RootParamList>>;
 type ScreenOptions<Screen extends keyof RootParamList> =
@@ -18,10 +20,38 @@ export const navigationRef = createNavigationContainerRef<RootParamList>();
 
 export function navigate<Screen extends keyof RootParamList>(
   screen: Screen,
-  options?: ScreenOptions<Screen>
+  options?: ScreenOptions<Screen>,
 ) {
   if (navigationRef.isReady()) {
     const nav = navigationRef.navigate as Navigate<Screen>;
     nav(screen, options);
   }
+}
+
+export function replace<Screen extends keyof RootParamList>(
+  screen: Screen,
+  options?: ScreenOptions<Screen>,
+) {
+  if (navigationRef.isReady()) {
+    navigationRef.dispatch(StackActions.replace(screen, options));
+  }
+}
+
+export function useDrawer() {
+  const openDrawer = () => {
+    if (navigationRef.isReady() && navigationRef.current) {
+      navigationRef.current.dispatch(DrawerActions.openDrawer());
+    }
+  };
+
+  const closeDrawer = () => {
+    if (navigationRef.isReady() && navigationRef.current) {
+      navigationRef.current.dispatch(DrawerActions.closeDrawer());
+    }
+  };
+
+  return {
+    openDrawer,
+    closeDrawer,
+  };
 }

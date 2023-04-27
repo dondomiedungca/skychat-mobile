@@ -1,26 +1,42 @@
 import React from 'react';
 import styled from 'styled-components/native';
+import { Dimensions, Button } from 'react-native';
 
 // components
 import MainContainer from '../../components/MainContainer';
+import { Typography } from '../../components/Typography';
 import { HomeHeader } from './partials/HomeHeader';
 
 // types and constants
 import Colors from '../../types/Colors';
+import { navigate } from '../../libs/rootNavigation';
+
+const FULL_WIDTH = Dimensions.get('screen').height;
+
+export const ListPeople = () => {
+  return <></>;
+};
 
 export const ChatHome = () => {
   return (
     <MainContainer header={<HomeHeader />}>
-      <Container></Container>
+      <Container>
+        <ConnectSection>
+          <Typography title="Connects" size={15} color={Colors.secondary} />
+          <ListPeople />
+        </ConnectSection>
+      </Container>
     </MainContainer>
   );
 };
 
 const Container = styled.View`
-  display: flex;
-  justify-content: center;
-  align-items: center;
   height: 100%;
-  width: 100%;
+  width: ${FULL_WIDTH}px;
   background: ${Colors.white};
+  padding: 0 10px 0 10px;
+`;
+
+const ConnectSection = styled.View`
+  margin-top: 60px;
 `;

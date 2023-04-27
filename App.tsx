@@ -21,18 +21,12 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaViewContainer>
-        <PaperProvider>
-          <Navigation />
-        </PaperProvider>
-      </SafeAreaViewContainer>
+      <PaperProvider>
+        <Navigation />
+      </PaperProvider>
     </SafeAreaProvider>
   );
 };
-
-const SafeAreaViewContainer = styled.SafeAreaView`
-  height: 100%;
-`;
 
 export default function Main() {
   return (
