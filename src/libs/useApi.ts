@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsMountedRef } from './useIsMountedRef';
 
 // const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
-const BASE_URL = 'http://192.168.0.32:3000';
+const BASE_URL = 'http://192.168.1.2:3000'; // if you are in development mode, use your device (your PC) ip
 
 export enum HTTPMethod {
   POST = 'post',

@@ -27,7 +27,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   label,
   onChange,
   value,
-  editable,
+  editable = true,
   ...rest
 }) => {
   const [isActive, setActive] = useState<boolean>(false);

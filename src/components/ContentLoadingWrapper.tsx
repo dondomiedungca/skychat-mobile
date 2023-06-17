@@ -36,6 +36,7 @@ export const ContentLoadingWrapper: React.FC<ContentLoadingWrapperTypes> = ({
 };
 
 const Container = styled.View`
+  flex: 1;
   width: ${FULL_WIDTH}px;
   height: ${FULL_HEIGHT}px;
 `;
