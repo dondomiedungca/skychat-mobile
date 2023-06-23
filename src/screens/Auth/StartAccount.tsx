@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components/native';
 import { AntDesign } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -20,9 +20,7 @@ import useMethodWrapper from '../../libs/useWrapper';
 
 // hooks and context
 import { useGoogleAuth } from './../../libs/useGoogle';
-import { useFetchEffect } from '../../libs/useFetchEffect';
 import { UserContext } from './context/UserContext';
-import { navigate } from '../../libs/rootNavigation';
 
 type HangoutScreenProps = {
   navigation: StackNavigationProp<RootParamList>;
@@ -42,17 +40,14 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
       />
     ) : null;
 
-  useFetchEffect(handleGoogleAuth, {
-    onData: (data) => {
-      if (!!data && !handleGoogleAuth.isLoading && !!user) {
-        navigation.replace('Home', {
-          screen: 'ChatHome',
-          params: { screen: 'Account' },
-        });
-      }
-    },
-    dependencies: [user],
-  });
+  useEffect(() => {
+    if (!!user && user?.id) {
+      navigation.replace('Home', {
+        screen: 'ChatHome',
+        params: { screen: 'Account' }
+      });
+    }
+  }, [user]);
 
   return (
     <MainContainer header={<Header />} isLoading={handleGoogleAuth.isLoading}>
@@ -61,7 +56,7 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
         <Typography
           style={{ marginTop: 35 }}
           title="Get started with your account"
-          color={Colors.secondary}
+          color={Colors.grey}
           fontFamily="Roboto-Medium"
           size={18}
         />
@@ -74,9 +69,9 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
                 source={Google}
               />
             )}
-            textColor={Colors.secondary}
+            textColor={Colors.grey}
             style={{ borderRadius: 5 }}
-            backgroundColor={Colors.white}
+            backgroundColor={Colors.secondary}
             mode="elevated"
             onPress={() => useMethodWrapper(promptAsync())}
           >
@@ -90,9 +85,9 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
                 source={Phone}
               />
             )}
-            textColor={Colors.secondary}
+            textColor={Colors.grey}
             style={{ borderRadius: 5, marginTop: 20 }}
-            backgroundColor={Colors.white}
+            backgroundColor={Colors.secondary}
             mode="elevated"
             onPress={() => useMethodWrapper(console.log('Pressed'))}
           >
@@ -115,6 +110,7 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
             label="Email"
             value={email}
             onChange={setEmail}
+            editable={true}
           />
           <CustomButtonV2
             width="100%"
@@ -122,7 +118,7 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
             style={{ borderRadius: 5, marginTop: 20 }}
             backgroundColor={Colors.primary}
             mode="contained"
-            onPress={() => console.log('Pressed')}
+            onPress={() => {}}
           >
             SUBMIT
           </CustomButtonV2>

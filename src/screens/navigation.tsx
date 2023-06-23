@@ -1,11 +1,12 @@
 import React, { useContext } from 'react';
 import {
   NavigationContainer,
-  NavigatorScreenParams,
+  NavigatorScreenParams
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { TransitionPresets } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { Verify, GetStarted, StartAccount } from './Auth';
 import { ChatHome } from './Home';
@@ -13,14 +14,18 @@ import { ChatHome } from './Home';
 import { navigationRef } from '../libs/rootNavigation';
 import { UserContext } from './Auth/context/UserContext';
 import AccountDrawer from './Home/partials/AccountDrawer';
+import BottomTabBar from '../components/BottomTabBar';
+import { Recent } from './Home/Recent';
+import { Call } from './Home/Call';
+import { Account } from './Home/Account';
 
 export type RootParamList = AppStackParamList &
   AuthStackParamList &
-  HomeStackParamList &
+  HomeStackTabParamList &
   DrawerStackParamList;
 
 export type AppStackParamList = {
-  Home: NavigatorScreenParams<HomeStackParamList>;
+  Home: NavigatorScreenParams<HomeStackTabParamList>;
   Auth: NavigatorScreenParams<AuthStackParamList>;
 };
 
@@ -36,18 +41,20 @@ export type AuthStackParamList = {
   };
 };
 
-export type HomeStackParamList = {
+export type HomeStackTabParamList = {
   ChatHome: NavigatorScreenParams<DrawerStackParamList>;
+  Recent: undefined;
+  Call: undefined;
+  Account: undefined;
 };
 
-const AppStack = createStackNavigator();
-const AuthStack = createStackNavigator();
-const HomeStack = createStackNavigator();
-
-const Drawer = createDrawerNavigator();
+const AppStack = createStackNavigator<AppStackParamList>();
+const AuthStack = createStackNavigator<AuthStackParamList>();
+const HomeStackTab = createBottomTabNavigator<HomeStackTabParamList>();
+const Drawer = createDrawerNavigator<DrawerStackParamList>();
 
 const TransitionScreenOptions = {
-  ...TransitionPresets.SlideFromRightIOS,
+  ...TransitionPresets.SlideFromRightIOS
 };
 
 const ChatHomeDrawerNavigator = () => {
@@ -62,14 +69,20 @@ const ChatHomeDrawerNavigator = () => {
   );
 };
 
-const HomeNavigator = () => {
+const TabNavigators = () => {
   return (
-    <HomeStack.Navigator
+    <HomeStackTab.Navigator
+      tabBar={(props: any) => <BottomTabBar {...props} />}
       initialRouteName="ChatHome"
-      screenOptions={{ headerShown: false }}
     >
-      <HomeStack.Screen name="ChatHome" component={ChatHomeDrawerNavigator} />
-    </HomeStack.Navigator>
+      <HomeStackTab.Screen
+        name="ChatHome"
+        component={ChatHomeDrawerNavigator}
+      />
+      <HomeStackTab.Screen name="Recent" component={Recent} />
+      <HomeStackTab.Screen name="Call" component={Call} />
+      <HomeStackTab.Screen name="Account" component={Account} />
+    </HomeStackTab.Navigator>
   );
 };
 
@@ -97,7 +110,7 @@ const Navigation = () => {
         initialRouteName={!!user && !!user.id ? 'Home' : 'Auth'}
       >
         <AppStack.Screen name="Auth" component={AuthNavigator} />
-        <AppStack.Screen name="Home" component={HomeNavigator} />
+        <AppStack.Screen name="Home" component={TabNavigators} />
       </AppStack.Navigator>
     </NavigationContainer>
   );

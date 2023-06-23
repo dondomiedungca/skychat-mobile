@@ -32,7 +32,7 @@ export const HomeHeader = () => {
       <Typography
         style={{}}
         title="Chats"
-        color={Colors.secondary_dark}
+        color={Colors.grey}
         fontFamily="Roboto-Medium"
         size={20}
       />

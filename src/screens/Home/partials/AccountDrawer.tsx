@@ -3,7 +3,7 @@ import {
   Image,
   TouchableOpacity,
   TouchableNativeFeedback,
-  Alert,
+  Alert
 } from 'react-native';
 import styled from 'styled-components/native';
 import { Avatar as ModuleAvatar } from 'react-native-paper';
@@ -12,16 +12,14 @@ import Colors from '../../../types/Colors';
 import { UserContext } from '../../Auth/context/UserContext';
 import { navigate } from './../../../libs/rootNavigation';
 
-import UserIcon from './../../../../assets/icons/user_icon.png';
 import ActiveIcon from './../../../../assets/icons/active_icon.png';
 import CogIcon from './../../../../assets/icons/cog_icon.png';
-import ArchiveIcon from './../../../../assets/icons/archive_icon.png';
-import MessageRequestsIcon from './../../../../assets/icons/message_requests_icon.png';
-import FilesIcon from './../../../../assets/icons/files_icon.png';
 import SignoutIcon from './../../../../assets/icons/signout_icon.png';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { Typography } from '../../../components/Typography';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AccountDrawer = () => {
   const { user, setUser } = useContext(UserContext);
@@ -33,7 +31,7 @@ const AccountDrawer = () => {
       [
         {
           text: 'Cancel',
-          style: 'cancel',
+          style: 'cancel'
         },
         {
           text: 'Yes',
@@ -42,12 +40,12 @@ const AccountDrawer = () => {
             await AsyncStorage.removeItem('REFRESH_TOKEN');
             setUser(undefined);
             navigate('Auth', { screen: 'GetStarted' });
-          },
-        },
+          }
+        }
       ],
       {
-        cancelable: true,
-      },
+        cancelable: true
+      }
     );
 
   return (
@@ -55,14 +53,13 @@ const AccountDrawer = () => {
       {!!user && (
         <>
           <TopSection>
-            <ModuleAvatar.Image size={80} source={{ uri: user?.picture! }} />
+            <ModuleAvatar.Image size={60} source={{ uri: user?.picture! }} />
             <Name>
-              <Image style={{ width: 23, height: 23 }} source={UserIcon} />
               <Typography
                 style={{ textTransform: 'uppercase' }}
                 title={`${user?.firstName} ${user?.lastName}`}
                 size={15}
-                color={Colors.secondary}
+                color={Colors.grey}
                 fontFamily="Roboto-Bold"
               />
             </Name>
@@ -72,7 +69,7 @@ const AccountDrawer = () => {
                 style={{ textTransform: 'uppercase' }}
                 title={`Active`}
                 size={10}
-                color={Colors.secondary}
+                color={Colors.grey}
                 fontFamily="Roboto-Bold"
               />
             </Status>
@@ -84,49 +81,70 @@ const AccountDrawer = () => {
           </TopSection>
           <Navigation>
             <NavContainer>
-              <Nav background={TouchableNativeFeedback.Ripple('#d6e6ff', true)}>
+              <Nav
+                background={TouchableNativeFeedback.Ripple(
+                  Colors.primary_light,
+                  true
+                )}
+              >
                 <NavContent>
-                  <Image
-                    style={{ width: 35, height: 35 }}
-                    source={ArchiveIcon}
+                  <FontAwesome5
+                    name="archive"
+                    size={20}
+                    color={Colors.primary}
                   />
                   <Typography
                     style={{ textTransform: 'uppercase' }}
                     title={`ARCHIVES`}
-                    size={15}
-                    color={Colors.secondary}
-                    fontFamily="Roboto"
+                    size={12}
+                    color={Colors.grey}
+                    fontFamily="Roboto-Medium"
                   />
                 </NavContent>
               </Nav>
             </NavContainer>
             <NavContainer>
-              <Nav background={TouchableNativeFeedback.Ripple('#d6e6ff', true)}>
+              <Nav
+                background={TouchableNativeFeedback.Ripple(
+                  Colors.primary_light,
+                  true
+                )}
+              >
                 <NavContent>
-                  <Image
-                    style={{ width: 35, height: 35 }}
-                    source={MessageRequestsIcon}
+                  <MaterialCommunityIcons
+                    name="message-badge"
+                    size={20}
+                    color={Colors.primary}
                   />
                   <Typography
                     style={{ textTransform: 'uppercase' }}
                     title={`MESSAGE REQUESTS`}
-                    size={15}
-                    color={Colors.secondary}
-                    fontFamily="Roboto"
+                    size={12}
+                    color={Colors.grey}
+                    fontFamily="Roboto-Medium"
                   />
                 </NavContent>
               </Nav>
             </NavContainer>
             <NavContainer>
-              <Nav background={TouchableNativeFeedback.Ripple('#d6e6ff', true)}>
+              <Nav
+                background={TouchableNativeFeedback.Ripple(
+                  Colors.primary_light,
+                  true
+                )}
+              >
                 <NavContent>
-                  <Image style={{ width: 35, height: 35 }} source={FilesIcon} />
+                  <MaterialCommunityIcons
+                    name="file-multiple"
+                    size={20}
+                    color={Colors.primary}
+                  />
                   <Typography
                     style={{ textTransform: 'uppercase' }}
                     title={`FILES`}
-                    size={15}
-                    color={Colors.secondary}
-                    fontFamily="Roboto"
+                    size={12}
+                    color={Colors.grey}
+                    fontFamily="Roboto-Medium"
                   />
                 </NavContent>
               </Nav>
@@ -138,12 +156,12 @@ const AccountDrawer = () => {
               onPress={askForLogout}
             >
               <NavContent>
-                <Image style={{ width: 35, height: 35 }} source={SignoutIcon} />
+                <Image style={{ width: 20, height: 20 }} source={SignoutIcon} />
                 <Typography
                   title={`Sign out`}
-                  size={15}
-                  color={Colors.secondary}
-                  fontFamily="Roboto"
+                  size={12}
+                  color={Colors.grey}
+                  fontFamily="Roboto-Medium"
                 />
               </NavContent>
             </Nav>
@@ -167,7 +185,7 @@ const TopSection = styled.View`
   left: 0;
   width: 100%;
   height: 200px;
-  background: rgba(0, 107, 251, 0.2);
+  background: ${Colors.secondary};
   border-bottom-right-radius: 20px;
   border-top-left-radius: 20px;
   padding: 10px;
@@ -182,7 +200,6 @@ const Name = styled.View`
 `;
 
 const Status = styled.View`
-  padding-left: 4px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -191,6 +208,9 @@ const Status = styled.View`
 `;
 
 const CogContainer = styled.View`
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
   display: flex;
   flex-direction: row;
   align-items: center;

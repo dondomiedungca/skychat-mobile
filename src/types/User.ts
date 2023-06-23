@@ -13,7 +13,7 @@ export interface User {
   verified_at?: Date;
   is_deleted?: Boolean;
   deleted_at?: Date;
-  roles: Role[];
+  roles?: Role[];
   picture?: string;
   googleId?: string;
 }

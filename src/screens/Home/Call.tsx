@@ -17,13 +17,13 @@ export const ListPeople = () => {
   return <></>;
 };
 
-export const ChatHome = () => {
+export const Call = () => {
   return (
     <MainContainer header={<HomeHeader />}>
       <Container>
         <ConnectSection>
           <Typography
-            title="Connects"
+            title="Call"
             size={15}
             color={Colors.grey_light}
             fontFamily="Roboto-Medium"

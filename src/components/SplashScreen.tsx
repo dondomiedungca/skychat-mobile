@@ -1,9 +1,9 @@
-import React from "react";
-import styled from "styled-components/native";
-import { ActivityIndicator } from "react-native";
+import React from 'react';
+import styled from 'styled-components/native';
+import { ActivityIndicator } from 'react-native';
 
-import Colors from "./../types/Colors";
-import Logo from "./../../assets/png/logo-no-background.png";
+import Colors from './../types/Colors';
+import Logo from './../../assets/png/logo-no-background.png';
 
 const SplashScreen = () => {
   return (

@@ -86,7 +86,7 @@ const StyledTextInput = styled(TextInput)<{
   background: transparent;
   padding: 5px 18px;
   border-radius: 5px;
-  color: ${Colors.secondary};
+  color: ${Colors.grey};
   height: 100%;
   width: 100%;
 `;

@@ -20,6 +20,3 @@ src/environments/*.production
 src/environments/*.staging
 src/environments/*.development
 
-src/configurations/config.staging.json
-src/configurations/config.production.json
-

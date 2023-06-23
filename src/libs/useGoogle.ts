@@ -26,7 +26,7 @@ export const useGoogleAuth = (): UseApiReturnProps & {
   const [, response, promptAsync] = Google.useAuthRequest({
     androidClientId: ANDROID_CLIENT_ID,
     iosClientId: IOS_CLIENT_ID,
-    expoClientId: EXPO_CLIENT_ID,
+    expoClientId: EXPO_CLIENT_ID
   });
 
   useEffect(() => {
@@ -43,6 +43,6 @@ export const useGoogleAuth = (): UseApiReturnProps & {
   return {
     promptAsync,
     makeRequest,
-    ...handleSigninGoogle,
+    ...handleSigninGoogle
   };
 };

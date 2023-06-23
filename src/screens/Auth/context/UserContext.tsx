@@ -1,5 +1,5 @@
-import React from "react";
-import { User } from "../../../types/User";
+import React from 'react';
+import { User } from '../../../types/User';
 
 export type UserContextType = {
   user?: User;
@@ -7,7 +7,7 @@ export type UserContextType = {
 };
 
 export const UserContext = React.createContext<UserContextType>({
-  setUser: () => {},
+  setUser: () => {}
 });
 
 interface Props {

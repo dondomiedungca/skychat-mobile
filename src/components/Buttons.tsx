@@ -32,7 +32,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
   iconRight,
   iconLeft,
   style,
-  isCircle,
+  isCircle
 }) => {
   const { r, g, b } = hex2rgb(background || Colors.primary);
 
@@ -40,7 +40,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
     <ButtonContainer
       style={{
         borderRadius: isCircle ? 100 : 5,
-        ...style,
+        ...style
       }}
     >
       <StyledPressable
@@ -54,7 +54,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
             mode === 'outlined'
               ? `rgba(${r}, ${g}, ${b}, .5)`
               : `rgba(0, 0, 0, .5)`,
-          borderless: false,
+          borderless: false
         }}
       >
         <TextContainer>
@@ -122,7 +122,7 @@ const StyledPressable = styled.Pressable<{
       mode === 'outlined' && {
         borderWidth: 1,
         borderColor: background ? background : Colors.primary,
-        background: 'transparent',
+        background: 'transparent'
       }}
 `;
 

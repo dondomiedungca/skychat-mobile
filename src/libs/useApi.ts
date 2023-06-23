@@ -5,21 +5,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsMountedRef } from './useIsMountedRef';
 
 // const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
-const BASE_URL = 'http://192.168.1.2:3000'; // if you are in development mode, use your device (your PC) ip
+const BASE_URL = 'http://192.168.1.9:3000'; // if you are in development mode, use your device (your PC) ip
 
 export enum HTTPMethod {
   POST = 'post',
   GET = 'get',
   PATCH = 'patch',
   PUT = 'put',
-  DELETE = 'delete',
+  DELETE = 'delete'
 }
 
 export type UseApiReturnProps = {
   isLoading: boolean;
   data: any;
   success: boolean;
-  error: Error;
+  error: Error | undefined;
   makeRequest?: (payload?: any) => any;
 };
 
@@ -32,7 +32,7 @@ export type HttpError = {
 export const useApi = (
   method: HTTPMethod,
   path: string,
-  overrideURL?: boolean,
+  overrideURL?: boolean
 ): UseApiReturnProps => {
   const [isLoading, setLoading] = useState<boolean>(false);
   const [data, setData] = useState<any>(undefined);
@@ -49,7 +49,7 @@ export const useApi = (
     const ACCESS_TOKEN = await AsyncStorage.getItem('ACCESS_TOKEN');
     const headers = {
       Authorization: `Bearer ${ACCESS_TOKEN}`,
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     };
     try {
       setLoading(true);
@@ -58,7 +58,7 @@ export const useApi = (
       let localResponse = await axios[method](
         url,
         { ...payload, cancelToken: source },
-        { headers },
+        { headers }
       );
       response = localResponse.data;
       setData(localResponse.data);
@@ -66,39 +66,38 @@ export const useApi = (
     } catch (error) {
       setError(error);
       if ((error as any)?.response?.data?.statusCode == 403) {
-        console.log('refetch');
         const REFRESH_TOKEN = await AsyncStorage.getItem('REFRESH_TOKEN');
         const refetch = await axios.post(
           `${BASE_URL}/token/refresh-token`,
           {
-            cancelToken: source,
+            cancelToken: source
           },
           {
             headers: {
-              Authorization: `Bearer ${REFRESH_TOKEN}`,
-            },
-          },
+              Authorization: `Bearer ${REFRESH_TOKEN}`
+            }
+          }
         );
         const recreatedAccessToken = refetch.data;
         if (recreatedAccessToken) {
           await AsyncStorage.setItem(
             'ACCESS_TOKEN',
-            recreatedAccessToken.accessToken,
+            recreatedAccessToken.accessToken
           );
           let localResponse = await axios[method](
             url,
             { ...payload, cancelToken: source },
             {
               headers: {
-                Authorization: `Bearer ${recreatedAccessToken.accessToken}`,
-              },
-            },
+                Authorization: `Bearer ${recreatedAccessToken.accessToken}`
+              }
+            }
           );
           response = localResponse.data;
         } else {
           response = {
             ...(error as any)?.response?.data,
-            error: new Error('Forbidden error'),
+            error: new Error('Forbidden error')
           };
         }
       }
@@ -119,6 +118,6 @@ export const useApi = (
     data,
     success,
     error,
-    makeRequest: fetch,
+    makeRequest: fetch
   };
 };

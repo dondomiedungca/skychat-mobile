@@ -11,12 +11,12 @@ export const useSigninWithGoogle = (): UseApiReturnProps => {
   const { isLoading, data, success, error, makeRequest } = useApi(
     HTTPMethod.POST,
     '/users/signin-with-google',
-    false,
+    false
   );
 
   const fetch = (token: string) => {
     const params = {
-      token,
+      token
     };
     makeRequest?.(params);
   };
@@ -35,7 +35,7 @@ export const useSigninWithGoogle = (): UseApiReturnProps => {
           lastName: decoded.lastName,
           email: decoded.email,
           roles: decoded.roles,
-          ...(decoded?.picture && { picture: decoded?.picture }),
+          ...(decoded?.picture && { picture: decoded?.picture })
         });
       };
 
@@ -48,7 +48,7 @@ export const useSigninWithGoogle = (): UseApiReturnProps => {
     data,
     success,
     error,
-    makeRequest: fetch,
+    makeRequest: fetch
   };
 };
 
@@ -56,7 +56,7 @@ export const useValidateAccessToken = () => {
   const { isLoading, data, success, error, makeRequest } = useApi(
     HTTPMethod.POST,
     '/token/validate-access-token',
-    false,
+    false
   );
 
   const fetch = async () => {
@@ -68,6 +68,6 @@ export const useValidateAccessToken = () => {
     data,
     success,
     error,
-    makeRequest: fetch,
+    makeRequest: fetch
   };
 };

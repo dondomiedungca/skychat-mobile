@@ -3,7 +3,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Dimensions,
-  StatusBar,
+  StatusBar
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styled from 'styled-components/native';
@@ -22,7 +22,7 @@ const MainContainer: React.FC<Props> = ({
   children,
   header,
   isLoading = false,
-  hiddenStatusBar = false,
+  hiddenStatusBar = false
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -33,21 +33,23 @@ const MainContainer: React.FC<Props> = ({
         accessible={false}
       >
         <StyledContainer
-          style={{
-            overflow: 'hidden',
-            marginTop: insets.top,
-            paddingBottom: insets.bottom,
-            paddingLeft: insets.left,
-            paddingRight: insets.right,
-          }}
+        // style={{
+        //   overflow: 'hidden',
+        //   marginTop: insets.top,
+        //   paddingBottom: insets.bottom,
+        //   paddingLeft: insets.left,
+        //   paddingRight: insets.right
+        // }}
         >
-          <StatusBar
-            barStyle={'dark-content'}
-            backgroundColor={isLoading ? 'rgba(0,0,0,0.7)' : 'white'}
-            hidden={hiddenStatusBar}
-          />
-          {header && <HeaderStyled>{header}</HeaderStyled>}
-          {children}
+          <>
+            <StatusBar
+              barStyle={'dark-content'}
+              backgroundColor={isLoading ? 'rgba(0,0,0,0.7)' : 'white'}
+              hidden={hiddenStatusBar}
+            />
+            {header && <HeaderStyled>{header}</HeaderStyled>}
+            {children}
+          </>
         </StyledContainer>
       </TouchableWithoutFeedback>
     </ContentLoadingWrapper>

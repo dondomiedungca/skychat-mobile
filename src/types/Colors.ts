@@ -1,8 +1,12 @@
 export default {
   black: '#000000',
   white: '#ffffff',
-  primary: '#378CFF',
-  secondary: '#6F6969',
-  secondary_light: '#d6d6d6',
-  secondary_dark: '#383838',
+  white_light_dark: '#fafafa',
+  grey: '#404040',
+  grey_light: '#9BABB8',
+  blue: '#30A2FF',
+  primary: '#82AAE3',
+  secondary: '#EAFDFC',
+  primary_light: '#91D8E4',
+  secondary_dark: '#BFEAF5'
 };

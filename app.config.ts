@@ -12,25 +12,33 @@ module.exports = {
     userInterfaceStyle: 'light',
     assetBundlePatterns: ['**/*'],
     ios: {
-      supportsTablet: true,
+      supportsTablet: true
     },
     android: {
       package: 'com.mainrow.skychat',
       adaptiveIcon: {
         foregroundImage: './assets/png/adaptive-icon.png',
-        backgroundColor: '#ffffff',
-      },
+        backgroundColor: '#ffffff'
+      }
     },
     web: {
-      favicon: './assets/png/icon.png',
+      favicon: './assets/png/icon.png'
     },
     extra: {
       eas: {
-        projectId: 'e5480611-21d5-4f59-bab4-35afe8a9e1d3',
+        projectId: 'e5480611-21d5-4f59-bab4-35afe8a9e1d3'
       },
-      ...(configurations && { ...configurations }),
+      ...(configurations && { ...configurations })
+    },
+    updates: {
+      url: 'https://u.expo.dev/e5480611-21d5-4f59-bab4-35afe8a9e1d3'
+    },
+    runtimeVersion: {
+      policy: 'sdkVersion'
     },
     owner: 'dondon181409',
     scheme: 'com.mainrow.skychat',
-  },
+    originalFullName: '@dondon181409/skychat',
+    currentFullName: '@dondon181409/skychat'
+  }
 };
