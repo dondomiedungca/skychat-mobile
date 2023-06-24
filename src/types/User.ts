@@ -3,6 +3,11 @@ export interface Role {
   name: string;
 }
 
+interface UserMeta {
+  google_id?: string;
+  profile_photo: string;
+}
+
 export interface User {
   id: string;
   firstName: string;
@@ -14,6 +19,5 @@ export interface User {
   is_deleted?: Boolean;
   deleted_at?: Date;
   roles?: Role[];
-  picture?: string;
-  googleId?: string;
+  user_meta?: UserMeta;
 }

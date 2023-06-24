@@ -10,7 +10,7 @@ import { Avatar as ModuleAvatar } from 'react-native-paper';
 
 import Colors from '../../../types/Colors';
 import { UserContext } from '../../Auth/context/UserContext';
-import { navigate } from './../../../libs/rootNavigation';
+import { navigate, replace } from './../../../libs/rootNavigation';
 
 import ActiveIcon from './../../../../assets/icons/active_icon.png';
 import CogIcon from './../../../../assets/icons/cog_icon.png';
@@ -38,8 +38,8 @@ const AccountDrawer = () => {
           onPress: async () => {
             await AsyncStorage.removeItem('ACCESS_TOKEN');
             await AsyncStorage.removeItem('REFRESH_TOKEN');
+            replace('Auth', { screen: 'GetStarted' });
             setUser(undefined);
-            navigate('Auth', { screen: 'GetStarted' });
           }
         }
       ],
@@ -53,7 +53,10 @@ const AccountDrawer = () => {
       {!!user && (
         <>
           <TopSection>
-            <ModuleAvatar.Image size={60} source={{ uri: user?.picture! }} />
+            <ModuleAvatar.Image
+              size={60}
+              source={{ uri: user?.user_meta?.profile_photo! }}
+            />
             <Name>
               <Typography
                 style={{ textTransform: 'uppercase' }}

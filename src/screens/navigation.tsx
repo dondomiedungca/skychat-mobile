@@ -74,6 +74,7 @@ const TabNavigators = () => {
     <HomeStackTab.Navigator
       tabBar={(props: any) => <BottomTabBar {...props} />}
       initialRouteName="ChatHome"
+      screenOptions={{ headerShown: false }}
     >
       <HomeStackTab.Screen
         name="ChatHome"

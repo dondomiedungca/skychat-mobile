@@ -5,8 +5,8 @@ export default {
   grey: '#404040',
   grey_light: '#9BABB8',
   blue: '#30A2FF',
-  primary: '#82AAE3',
-  secondary: '#EAFDFC',
-  primary_light: '#91D8E4',
-  secondary_dark: '#BFEAF5'
+  primary: '#42C2FF',
+  secondary: '#EFFFFD',
+  primary_light: '#85F4FF',
+  secondary_dark: '#B8FFF9'
 };

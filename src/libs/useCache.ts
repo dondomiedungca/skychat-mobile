@@ -33,7 +33,7 @@ export const useCacheApp = () => {
   const validateAccesstoken = async () => {
     const accessToken = await AsyncStorage.getItem('ACCESS_TOKEN');
     if (!!accessToken) {
-      const response: User & HttpError = await makeRequest();
+      const response = await makeRequest();
       if (
         !response?.hasOwnProperty('error') &&
         !response?.hasOwnProperty('statusCode')
@@ -44,7 +44,7 @@ export const useCacheApp = () => {
           lastName: response?.lastName,
           email: response?.email,
           roles: response?.roles,
-          ...(response?.picture && { picture: response?.picture })
+          user_meta: response?.user_meta
         });
       }
     }

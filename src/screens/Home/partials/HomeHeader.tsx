@@ -16,9 +16,12 @@ export const Avatar = () => {
   const { user } = useContext(UserContext);
   const drawer = useDrawer();
 
-  return !!user?.picture ? (
+  return !!user?.user_meta ? (
     <TouchableOpacity onPress={() => drawer.openDrawer()}>
-      <ModuleAvatar.Image size={35} source={{ uri: user.picture }} />
+      <ModuleAvatar.Image
+        size={35}
+        source={{ uri: user.user_meta?.profile_photo }}
+      />
     </TouchableOpacity>
   ) : (
     <ModuleAvatar.Text size={35} label="XD" />

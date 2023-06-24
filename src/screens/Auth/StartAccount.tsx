@@ -71,7 +71,7 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
             )}
             textColor={Colors.grey}
             style={{ borderRadius: 5 }}
-            backgroundColor={Colors.secondary}
+            backgroundColor={Colors.white_light_dark}
             mode="elevated"
             onPress={() => useMethodWrapper(promptAsync())}
           >
@@ -87,7 +87,7 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
             )}
             textColor={Colors.grey}
             style={{ borderRadius: 5, marginTop: 20 }}
-            backgroundColor={Colors.secondary}
+            backgroundColor={Colors.white_light_dark}
             mode="elevated"
             onPress={() => useMethodWrapper(console.log('Pressed'))}
           >
@@ -98,7 +98,7 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
           <Typography
             style={{ marginTop: 10 }}
             title="OR"
-            color={Colors.secondary}
+            color={Colors.grey}
             fontFamily="Roboto-Medium"
             size={15}
           />
