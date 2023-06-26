@@ -13,6 +13,7 @@ interface TypographyProps {
     | 'Roboto-Bold'
     | 'Roboto-Thin'
     | 'Roboto-Light';
+  numberOfLines?: number;
 }
 
 export const Typography: React.FC<TypographyProps> = ({
@@ -21,9 +22,16 @@ export const Typography: React.FC<TypographyProps> = ({
   color,
   fontFamily,
   style,
+  numberOfLines = 2
 }) => {
   return (
-    <StyledText style={style} size={size} color={color} fontFamily={fontFamily}>
+    <StyledText
+      style={style}
+      size={size}
+      color={color}
+      fontFamily={fontFamily}
+      numberOfLines={numberOfLines}
+    >
       {title}
     </StyledText>
   );

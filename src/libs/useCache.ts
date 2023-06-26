@@ -7,10 +7,7 @@ import jwtDecode from 'jwt-decode';
 
 // hooks and context
 import { useValidateAccessToken } from './useUser';
-import { AxiosResponse } from 'axios';
 import { UserContext } from '../screens/Auth/context/UserContext';
-import { HttpError } from './useApi';
-import { User } from '../types/User';
 
 SplashScreen.preventAutoHideAsync();
 SplashScreen.hideAsync();

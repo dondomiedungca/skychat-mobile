@@ -3,9 +3,15 @@ export interface Role {
   name: string;
 }
 
+interface UserActivity {
+  showActivity?: boolean;
+  isActive?: boolean;
+  lastActive?: Date;
+}
 interface UserMeta {
   google_id?: string;
   profile_photo: string;
+  activity?: UserActivity;
 }
 
 export interface User {

@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  TouchableWithoutFeedback,
-  Keyboard,
-  Dimensions,
-  StatusBar
-} from 'react-native';
+import { Keyboard, Dimensions, StatusBar } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styled from 'styled-components/native';
 import { ContentLoadingWrapper } from './ContentLoadingWrapper';

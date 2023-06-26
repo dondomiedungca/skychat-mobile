@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsMountedRef } from './useIsMountedRef';
 
 // const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
-const BASE_URL = 'http://192.168.1.9:3000'; // if you are in development mode, use your device (your PC) ip
+const BASE_URL = 'http://192.168.1.11:3000'; // if you are in development mode, use your device (your PC) ip
 
 export enum HTTPMethod {
   POST = 'post',
@@ -29,6 +29,33 @@ export type HttpError = {
   statusCode: number;
 };
 
+const createHttp = ({
+  method,
+  url,
+  config,
+  cancelator,
+  payloads
+}: {
+  method: HTTPMethod;
+  url: string;
+  config: any;
+  cancelator: any;
+  payloads?: any;
+}) => {
+  switch (method) {
+    case HTTPMethod.POST:
+      return axios.post(url, payloads, config);
+    case HTTPMethod.GET:
+      return axios.get(url, {
+        ...config,
+        cancelToken: cancelator.source.token,
+        params: payloads
+      });
+    default:
+      return axios[method](url, payloads, config);
+  }
+};
+
 export const useApi = (
   method: HTTPMethod,
   path: string,
@@ -41,6 +68,7 @@ export const useApi = (
   const isMounted = useIsMountedRef();
 
   const url = overrideURL ? path : `${BASE_URL}${path}`;
+
   const CancelToken = axios.CancelToken;
   const source = CancelToken.source();
 
@@ -55,27 +83,33 @@ export const useApi = (
       setLoading(true);
       setError(false);
       setSuccess(false);
-      let localResponse = await axios[method](
+      let localResponse = await createHttp({
+        method,
         url,
-        { ...payload, cancelToken: source },
-        { headers }
-      );
+        config: { headers },
+        cancelator: {
+          source
+        },
+        payloads: {
+          ...payload
+        }
+      });
       response = localResponse.data;
       setData(localResponse.data);
       setSuccess(true);
     } catch (error) {
+      console.log(error);
       setError(error);
       if ((error as any)?.response?.data?.statusCode == 403) {
         const REFRESH_TOKEN = await AsyncStorage.getItem('REFRESH_TOKEN');
         const refetch = await axios.post(
           `${BASE_URL}/token/refresh-token`,
-          {
-            cancelToken: source
-          },
+          {},
           {
             headers: {
               Authorization: `Bearer ${REFRESH_TOKEN}`
-            }
+            },
+            cancelToken: source.token
           }
         );
         const recreatedAccessToken = refetch.data;
@@ -84,15 +118,19 @@ export const useApi = (
             'ACCESS_TOKEN',
             recreatedAccessToken.accessToken
           );
-          let localResponse = await axios[method](
+          let localResponse = await createHttp({
+            method,
             url,
-            { ...payload, cancelToken: source },
-            {
+            config: {
               headers: {
                 Authorization: `Bearer ${recreatedAccessToken.accessToken}`
               }
-            }
-          );
+            },
+            cancelator: {
+              source
+            },
+            payloads: { ...payload }
+          });
           response = localResponse.data;
         } else {
           response = {

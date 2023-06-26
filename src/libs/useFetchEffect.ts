@@ -10,7 +10,7 @@ type FetchEffectProps<Data> = {
 
 export const useFetchEffect = <Data>(
   propsToWatch: UseApiReturnProps,
-  props: FetchEffectProps<Data>,
+  props: FetchEffectProps<Data>
 ) => {
   const { isLoading, error, data, success } = propsToWatch;
   const { onSuccess, onData, onError, dependencies } = props;

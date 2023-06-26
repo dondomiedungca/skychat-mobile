@@ -11,8 +11,9 @@ import { Avatar as ModuleAvatar } from 'react-native-paper';
 import Colors from '../../../types/Colors';
 import { UserContext } from '../../Auth/context/UserContext';
 import { navigate, replace } from './../../../libs/rootNavigation';
+import { useLogout } from '../../../libs/useUser';
 
-import ActiveIcon from './../../../../assets/icons/active_icon.png';
+import ActiveIcon from './../../../../assets/icons/online_icon.png';
 import CogIcon from './../../../../assets/icons/cog_icon.png';
 import SignoutIcon from './../../../../assets/icons/signout_icon.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,9 +21,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { Typography } from '../../../components/Typography';
+import { useFetchEffect } from '../../../libs/useFetchEffect';
 
 const AccountDrawer = () => {
   const { user, setUser } = useContext(UserContext);
+  const { makeRequest: fetchLogout, ...handleLogout } = useLogout();
 
   const askForLogout = () =>
     Alert.alert(
@@ -36,10 +39,10 @@ const AccountDrawer = () => {
         {
           text: 'Yes',
           onPress: async () => {
-            await AsyncStorage.removeItem('ACCESS_TOKEN');
-            await AsyncStorage.removeItem('REFRESH_TOKEN');
-            replace('Auth', { screen: 'GetStarted' });
-            setUser(undefined);
+            const refreshToken = await AsyncStorage.getItem('REFRESH_TOKEN');
+            if (refreshToken) {
+              fetchLogout({ refreshToken });
+            }
           }
         }
       ],
@@ -47,6 +50,15 @@ const AccountDrawer = () => {
         cancelable: true
       }
     );
+
+  useFetchEffect(handleLogout, {
+    onData: async () => {
+      await AsyncStorage.removeItem('ACCESS_TOKEN');
+      await AsyncStorage.removeItem('REFRESH_TOKEN');
+      replace('Auth', { screen: 'GetStarted' });
+      setUser(undefined);
+    }
+  });
 
   return (
     <Container>

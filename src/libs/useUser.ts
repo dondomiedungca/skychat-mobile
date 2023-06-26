@@ -71,3 +71,43 @@ export const useValidateAccessToken = () => {
     makeRequest: fetch
   };
 };
+
+export const useGetPaginatedUsers = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.GET,
+    '/users/get-users/except-me',
+    false
+  );
+
+  const fetch = async ({ page, search }: { page: number; search?: string }) => {
+    return makeRequest?.({ page, search });
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};
+
+export const useLogout = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.POST,
+    '/users/handle-logout',
+    false
+  );
+
+  const fetch = async ({ refreshToken }: { refreshToken: string }) => {
+    return makeRequest?.({ refreshToken });
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};
