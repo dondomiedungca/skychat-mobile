@@ -68,6 +68,7 @@ const RoomHeader = ({
 };
 
 const Container = styled.View`
+  background: ${Colors.white};
   width: ${FULL_WIDTH}px;
   height: 60px;
   display: flex;

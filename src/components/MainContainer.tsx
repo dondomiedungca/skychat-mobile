@@ -10,6 +10,7 @@ interface Props {
   children: React.ReactNode;
   hiddenStatusBar?: boolean;
   isLoading?: boolean;
+  disableTouchableFeedback?: boolean;
 }
 
 const FULL_WIDTH = Dimensions.get('screen').width;
@@ -18,26 +19,19 @@ const MainContainer: React.FC<Props> = ({
   children,
   header,
   isLoading = false,
-  hiddenStatusBar = false
+  hiddenStatusBar = false,
+  disableTouchableFeedback = false
 }) => {
   const insets = useSafeAreaInsets();
 
   return (
     <ContentLoadingWrapper isLoading={isLoading}>
-      <TouchableWithoutFeedback
-        onPress={() => Keyboard.dismiss()}
-        accessible={false}
-      >
-        <StyledContainer
-        // style={{
-        //   overflow: 'hidden',
-        //   marginTop: insets.top,
-        //   paddingBottom: insets.bottom,
-        //   paddingLeft: insets.left,
-        //   paddingRight: insets.right
-        // }}
+      {!disableTouchableFeedback && (
+        <TouchableWithoutFeedback
+          onPress={() => Keyboard.dismiss()}
+          accessible={false}
         >
-          <>
+          <StyledContainer>
             <StatusBar
               barStyle={'dark-content'}
               backgroundColor={isLoading ? 'rgba(0,0,0,0.7)' : 'white'}
@@ -45,9 +39,20 @@ const MainContainer: React.FC<Props> = ({
             />
             {header && <HeaderStyled>{header}</HeaderStyled>}
             {children}
-          </>
+          </StyledContainer>
+        </TouchableWithoutFeedback>
+      )}
+      {disableTouchableFeedback && (
+        <StyledContainer>
+          <StatusBar
+            barStyle={'dark-content'}
+            backgroundColor={isLoading ? 'rgba(0,0,0,0.7)' : 'white'}
+            hidden={hiddenStatusBar}
+          />
+          {header && <HeaderStyled>{header}</HeaderStyled>}
+          {children}
         </StyledContainer>
-      </TouchableWithoutFeedback>
+      )}
     </ContentLoadingWrapper>
   );
 };

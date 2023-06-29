@@ -17,10 +17,9 @@ import { User } from '../../../types/User';
 import { useFetchEffect } from '../../../libs/useFetchEffect';
 import {
   ListRenderItemInfo,
-  View,
-  Text,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  RefreshControl
 } from 'react-native';
 import Avatar from '../../../components/Avatar';
 
@@ -31,7 +30,9 @@ const CONNECTS_HEIGHT = HEIGHT * 0.3;
 const Card = ({ user }: { user: User }) => {
   return (
     <TouchableOpacity
-      onPress={() => navigate('ChatRoom', { screen: 'Room', params: { user } })}
+      onPress={() =>
+        navigationPush('ChatRoom', { screen: 'Room', params: { user } })
+      }
     >
       <StyledCard>
         <CardMainInfo>
@@ -62,16 +63,8 @@ const Card = ({ user }: { user: User }) => {
   );
 };
 
-const Item = ({ item }: ListRenderItemInfo<any>) => {
-  return (
-    <RowContainer>
-      {item.length &&
-        item?.map((user: User) => <Card key={user.id} user={user} />)}
-    </RowContainer>
-  );
-};
-
-const ListPeople = () => {
+export const ChatHome = () => {
+  const [refreshing, setRefreshing] = useState(false);
   const [users, setUsers] = useState<User[][]>([]);
 
   const { makeRequest: fetchUsers, ...handleFetchUsers } =
@@ -85,28 +78,27 @@ const ListPeople = () => {
     onData: (data: User[]) => {
       if (!!data && !handleFetchUsers.isLoading) {
         const chunked = _.chunk(data, 2);
-        setUsers((prev) => [...prev, ...chunked]);
+        setUsers(chunked);
+        setRefreshing(false);
       }
     },
-    dependencies: []
+    dependencies: [refreshing]
   });
 
   return (
-    <Connects>
-      <StyledFlatList
-        horizontal
-        keyExtractor={(item, index) => item + index.toString()}
-        data={users}
-        renderItem={Item}
-      />
-    </Connects>
-  );
-};
-
-export const ChatHome = () => {
-  return (
     <MainContainer header={<HomeHeader />}>
-      <Container>
+      <Container
+        refreshControl={
+          <RefreshControl
+            progressBackgroundColor={Colors.white}
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              fetchUsers({ page: 1 });
+            }}
+          />
+        }
+      >
         <ConnectSection>
           <Typography
             title="Connects"
@@ -114,14 +106,30 @@ export const ChatHome = () => {
             color={Colors.grey_light}
             fontFamily="Roboto-Medium"
           />
-          <ListPeople />
+          <Connects>
+            <StyledFlatList
+              horizontal
+              keyExtractor={(item, index) => item + index.toString()}
+              data={users}
+              renderItem={({ item }: ListRenderItemInfo<any>) => {
+                return (
+                  <RowContainer>
+                    {item.length &&
+                      item?.map((user: User) => (
+                        <Card key={user.id} user={user} />
+                      ))}
+                  </RowContainer>
+                );
+              }}
+            />
+          </Connects>
         </ConnectSection>
       </Container>
     </MainContainer>
   );
 };
 
-const Container = styled.View`
+const Container = styled.ScrollView`
   height: 100%;
   width: 100%;
   background: ${Colors.white};

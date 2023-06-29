@@ -26,4 +26,5 @@ export interface User {
   deleted_at?: Date;
   roles?: Role[];
   user_meta?: UserMeta;
+  conversations?: any[];
 }
