@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
+import Constants from 'expo-constants';
 import * as Google from 'expo-auth-session/providers/google';
-import { ANDROID_CLIENT_ID, EXPO_CLIENT_ID, IOS_CLIENT_ID } from '@env';
 
 // hooks
 import { useSigninWithGoogle } from './useUser';
@@ -16,6 +16,10 @@ export type GoogleUser = {
   picture: string;
   locale: string;
 };
+
+const ANDROID_CLIENT_ID = Constants?.expoConfig?.extra?.ANDROID_CLIENT_ID;
+const EXPO_CLIENT_ID = Constants?.expoConfig?.extra?.EXPO_CLIENT_ID;
+const IOS_CLIENT_ID = Constants?.expoConfig?.extra?.IOS_CLIENT_ID;
 
 export const useGoogleAuth = (): UseApiReturnProps & {
   promptAsync: () => void;

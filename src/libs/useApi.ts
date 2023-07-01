@@ -6,8 +6,6 @@ import { useIsMountedRef } from './useIsMountedRef';
 
 const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
 
-console.log(Constants?.expoConfig?.extra);
-
 export enum HTTPMethod {
   POST = 'post',
   GET = 'get',
