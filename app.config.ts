@@ -1,6 +1,4 @@
-const configurations = require(`./src/configurations/config.${
-  process.env.EXPO_RELEASE_CHANNEL || 'development'
-}.json`);
+const configurations = require(`./src/configurations/config.${process.env.EXPO_RELEASE_CHANNEL}.json`);
 
 module.exports = {
   expo: {

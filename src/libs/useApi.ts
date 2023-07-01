@@ -4,8 +4,9 @@ import axios, { AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsMountedRef } from './useIsMountedRef';
 
-// const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
-const BASE_URL = 'http://192.168.1.6:3000'; // if you are in development mode, use your device (your PC) ip
+const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
+
+console.log(Constants?.expoConfig?.extra);
 
 export enum HTTPMethod {
   POST = 'post',
