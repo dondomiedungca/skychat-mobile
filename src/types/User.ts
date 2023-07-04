@@ -1,3 +1,6 @@
+import { Conversation } from './Conversation';
+import { UsersConversations } from './UsersConversations';
+
 export interface Role {
   id: string;
   name: string;
@@ -26,5 +29,6 @@ export interface User {
   deleted_at?: Date;
   roles?: Role[];
   user_meta?: UserMeta;
-  conversations?: any[];
+  conversations?: Conversation[];
+  users_conversations?: UsersConversations[];
 }

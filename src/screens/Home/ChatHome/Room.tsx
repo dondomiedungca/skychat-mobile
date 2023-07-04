@@ -1,18 +1,21 @@
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, {
-  useEffect,
   useState,
   useContext,
   useCallback,
   useRef,
-  useMemo
+  useMemo,
+  useLayoutEffect,
+  useEffect
 } from 'react';
 import styled from 'styled-components/native';
-import { GiftedChat, IMessage } from 'react-native-gifted-chat';
-import { Image, Keyboard } from 'react-native';
+import { IMessage } from 'react-native-gifted-chat';
+import { Animated, Image, Keyboard } from 'react-native';
 import uuid from 'react-native-uuid';
 import moment from 'moment';
+import { io } from 'socket.io-client';
+import Constants from 'expo-constants';
 
 import MainContainer from '../../../components/MainContainer';
 import RoomHeader from '../../../components/RoomHeader';
@@ -33,25 +36,31 @@ import CameraIcon from './../../../../assets/icons/camera_icon.png';
 import SmileIcon from './../../../../assets/icons/smile_icon.png';
 import MicrophoneIcon from './../../../../assets/icons/microphone_icon.png';
 import DoubleCheckIcon from './../../../../assets/icons/double_check_icon.png';
+import { Conversation } from '../../../types/Conversation';
+import _ from 'lodash';
 
-import { io } from 'socket.io-client';
+const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
 
 type RoomScreenProps = {
   navigation: StackNavigationProp<RootParamList>;
   route: RouteProp<ChatRoomStackParamList, 'Room'>;
 };
 
+interface IMessageAsSection {
+  title: string;
+  data: IMessage[];
+}
+
 const Composer = ({
-  handleSendChat
+  handleSend
 }: {
-  handleSendChat: (text: string | undefined) => void;
+  handleSend: (text: string | undefined) => void;
 }) => {
-  const socket = useMemo(() => io('http://192.168.1.6:3000/chats'), []);
   const [chat, setChat] = useState<string>();
   const [hide, setHide] = useState<boolean>(false);
   const textInputRef = useRef<any>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
       setHide(false);
       textInputRef.current?.blur();
@@ -62,19 +71,12 @@ const Composer = ({
     };
   }, []);
 
-  useEffect(() => {
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
   return (
     <ComposerContainer>
       <TextContainer>
         <StyledTextInput
+          onFocus={() => setHide(true)}
           ref={textInputRef}
-          onPressIn={() => setHide(true)}
-          onBlur={() => setHide(false)}
           value={chat}
           onChangeText={setChat}
           placeholder="Write a message..."
@@ -110,7 +112,7 @@ const Composer = ({
       <SendTouchableOpacity
         disabled={!chat}
         onPress={() => {
-          handleSendChat(chat);
+          handleSend(chat);
           setChat(undefined);
         }}
       >
@@ -125,29 +127,89 @@ const Composer = ({
 
 const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   const user = route?.params?.user;
-  const conversation = user?.conversations;
   const { user: currentUser } = useContext(UserContext);
   const { makeRequest: fetchChats, ...handleFetchChats } = useFetchChats();
   const { makeRequest: sendChat, ...handleSendChat } = useSendChat();
-  const [messages, setMessages] = useState<IMessage[]>([]);
+  const [conversation_id, setConversationId] = useState<string | undefined>(
+    user?.users_conversations?.[0]?.conversation?.id
+  );
+  const [messages, setMessages] = useState<IMessageAsSection[]>([]);
 
-  useEffect(() => {
+  const socket = useMemo(() => {
+    // listen for newly created conversation entity, this is useful for joining room
+    // if conversation was changed from undefined to entity, update the socket connection for passing the hash as room
+    return io(`${BASE_URL}/chats`, {
+      query: {
+        conversation_id
+      }
+    });
+  }, [conversation_id]);
+
+  const updateMessages = useCallback(
+    (payload: any) => {
+      const msg: IMessage = payload.msg;
+      const keyDate = moment(msg.createdAt).format('MMMM DD, YYYY');
+      let copy = [...messages];
+      const sectionIndex = copy.findIndex((section) => {
+        return (section.title as string) == (keyDate as string);
+      });
+
+      if (sectionIndex == -1) {
+        copy = [{ title: keyDate, data: [msg] }, ...copy];
+      } else {
+        copy[sectionIndex].data = [msg, ...copy[sectionIndex].data];
+      }
+
+      setMessages(copy);
+    },
+    [messages]
+  );
+
+  useLayoutEffect(() => {
     if (currentUser) {
       fetchChats({
-        conversation_id: conversation?.[0]?.id,
+        conversation_id: conversation_id,
         page: 1,
         parties: [user.id, currentUser?.id]
       });
     }
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
+
+  useLayoutEffect(() => {
+    socket.on('receiveChat', (payload) => {
+      updateMessages(payload);
+    });
+
+    return () => {
+      socket.off('receiveChat');
+    };
+  }, [messages]);
 
   useFetchEffect(handleFetchChats, {
     onData: (data: Chat[]) => {
-      setMessages(data.map((data) => data.chat_meta));
+      const finalData = _(data).groupBy((v) =>
+        moment(v.chat_meta.createdAt).format('MMMM DD, YYYY')
+      );
+      const sections = Object.keys(finalData.toJSON()).map((key) => ({
+        title: key,
+        data: finalData.get(key).map((chat: Chat) => chat.chat_meta)
+      }));
+
+      setMessages(sections);
     }
   });
 
-  const handleSendchat = (chat: string | undefined) => {
+  useFetchEffect(handleSendChat, {
+    onData: (data: Conversation) => {
+      setConversationId(data.id);
+    }
+  });
+
+  const handleSend = useCallback((chat: string | undefined) => {
     const data: IMessage = {
       _id: uuid.v4() as string,
       text: chat as string,
@@ -156,22 +218,28 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
         _id: currentUser?.id!
       }
     };
-    setMessages((prev) => [
-      {
-        ...data,
-        user: { ...data.user, avatar: user.user_meta?.profile_photo }
-      },
-      ...prev
-    ]);
-    sendChat({
+    const msg = {
       msg: {
         ...data,
         user: { ...data.user, avatar: user.user_meta?.profile_photo }
       },
-      conversation_id: conversation?.[0]?.id,
+      conversation_id,
       parties: [user.id, currentUser?.id].filter(Boolean)
+    };
+    updateMessages({
+      msg: {
+        ...data,
+        user: { ...data.user, avatar: user.user_meta?.profile_photo }
+      }
     });
-  };
+    if (conversation_id) {
+      socket.emit('sendChat', {
+        msg,
+        conversation_id
+      });
+    }
+    sendChat(msg);
+  }, []);
 
   const EmptyChat = useCallback(() => {
     return (
@@ -201,58 +269,86 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     );
   }, []);
 
-  const RenderTime = (data: any) => {
-    const chatMeta: IMessage = data.data.currentMessage;
+  const Item = useCallback(({ section }: { section: IMessageAsSection }) => {
     return (
-      <TimeContainer>
-        <Typography
-          title={moment(chatMeta.createdAt).format('h:mm A')}
-          size={10}
-          color={
-            chatMeta.user._id != currentUser?.id ? Colors.grey : Colors.white
-          }
-        />
-        {chatMeta.user._id == currentUser?.id && (
-          <Image
-            style={{ width: 15, height: 15, marginLeft: 5 }}
-            source={DoubleCheckIcon}
-          />
-        )}
-      </TimeContainer>
+      <>
+        {section.data.length &&
+          section.data.map((message: IMessage) => (
+            <WholeMessageContainer
+              key={message._id}
+              style={{
+                justifyContent:
+                  message.user._id == currentUser?.id
+                    ? 'flex-end'
+                    : 'flex-start'
+              }}
+            >
+              <Bubble isYours={message.user._id == currentUser?.id}>
+                <Typography
+                  title={message.text}
+                  size={14}
+                  color={
+                    message.user._id == currentUser?.id
+                      ? Colors.white
+                      : Colors.grey
+                  }
+                />
+                <TimeContainer>
+                  <Typography
+                    title={moment(message.createdAt).format('h:mm A')}
+                    size={10}
+                    color={
+                      message.user._id != currentUser?.id
+                        ? Colors.grey
+                        : Colors.white
+                    }
+                  />
+                  {message.user._id == currentUser?.id && (
+                    <Image
+                      style={{ width: 15, height: 15, marginLeft: 5 }}
+                      source={DoubleCheckIcon}
+                    />
+                  )}
+                </TimeContainer>
+              </Bubble>
+            </WholeMessageContainer>
+          ))}
+        <WholeMessageContainer style={{ justifyContent: 'center' }}>
+          <Typography title={section.title} size={12} color={Colors.grey} />
+        </WholeMessageContainer>
+      </>
     );
-  };
+  }, []);
 
   return (
-    <MainContainer header={<RoomHeader user={user} navigation={navigation} />}>
-      {currentUser && (
-        <Container style={{ marginTop: 60, paddingBottom: 60 }}>
-          <GiftedChat
-            placeholder="Write a message..."
-            messages={messages}
-            user={{
-              _id: currentUser.id
-            }}
-            showUserAvatar
-            renderComposer={() => <></>}
-            renderTime={(data) => <RenderTime data={data} />}
-            keyboardShouldPersistTaps="always"
-            {...((!conversation || conversation.length) &&
-              !messages.length && {
-                renderChatFooter: () => <EmptyChat />
-              })}
+    <MainContainer
+      disableTouchableFeedback
+      header={<RoomHeader user={user} navigation={navigation} />}
+    >
+      <Container>
+        {messages.length ? (
+          <StyledFlatList
+            data={messages}
+            renderItem={({ item }: { item: any }) => <Item section={item} />}
+            keyExtractor={(item: any) => item.title}
+            showsVerticalScrollIndicator={false}
+            inverted
           />
-          <Composer handleSendChat={handleSendchat} />
-        </Container>
-      )}
+        ) : (
+          <EmptyChat />
+        )}
+        <Composer handleSend={handleSend} />
+      </Container>
     </MainContainer>
   );
 };
 
 const Container = styled.View`
-  height: 100%;
+  flex: 1;
+  justify-content: flex-end;
   width: 100%;
   background: ${Colors.white};
-  padding: 0 10px 0 10px;
+  padding: 60px 10px 0 10px;
 `;
 
 const EmptyContainer = styled.View`
@@ -261,22 +357,25 @@ const EmptyContainer = styled.View`
   align-items: center;
   justify-content: center;
   top: 60px;
+  left: 10px;
   background: ${Colors.white};
   height: 100%;
   width: 100%;
 `;
 
 const TextContainer = styled.View`
+  width: 100px;
+  display: flex;
+  flex-direction: column;
   flex-grow: 1;
 `;
 
-const ActionContainer = styled.View`
-  min-height: 50px;
-  max-height: 60px;
+const ActionContainer = styled(Animated.View)`
   display: flex;
   flex-direction: row;
   gap: 10px;
   align-items: center;
+  margin-top: 5px;
 `;
 
 const StyledTouchableOpacity = styled.TouchableOpacity`
@@ -291,7 +390,6 @@ const SendTouchableOpacity = styled.TouchableOpacity`
 const ComposerContainer = styled.View`
   width: 100%;
   max-height: 200px;
-  margin-top: -40px;
   padding-bottom: 10px;
   padding-top: 10px;
   display: flex;
@@ -312,11 +410,31 @@ const TimeContainer = styled.View`
   float: right;
   diplay: flex;
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  padding-left: 10px;
-  padding-right: 10px;
-  margin-bottom: 5px;
+`;
+
+const StyledFlatList = styled.FlatList`
+  flex-grow: 0;
+`;
+
+const WholeMessageContainer = styled.View`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  margin-bottom: 10px;
+`;
+
+const Bubble = styled.View<{ isYours?: boolean }>`
+  border-radius: 10px;
+  padding: 10px;
+  max-width: 50%;
+  min-width: 100px;
+  background: ${({ isYours }) => (isYours ? Colors.primary : Colors.away)};
+  ${({ isYours }) => {
+    return isYours
+      ? 'border-bottom-right-radius: 0;'
+      : 'border-bottom-left-radius: 0;';
+  }}
 `;
 
 export default ChatRoom;

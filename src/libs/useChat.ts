@@ -15,7 +15,7 @@ export const useFetchChats = () => {
     search
   }: {
     parties: string[];
-    conversation_id?: number;
+    conversation_id?: string;
     page: number;
     search?: string;
   }) => {
@@ -43,7 +43,7 @@ export const useSendChat = () => {
     conversation_id,
     parties
   }: {
-    conversation_id?: number;
+    conversation_id?: string;
     msg: IMessage;
     parties: (string | undefined)[];
   }) => {

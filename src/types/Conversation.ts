@@ -2,9 +2,11 @@ import { Chat } from './Chat';
 import { User } from './User';
 
 export interface Conversation {
-  id: number;
+  id: string;
 
   type: string;
+
+  hash: string;
 
   conversation_meta: string | null;
 

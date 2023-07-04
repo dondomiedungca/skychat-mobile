@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { UseApiReturnProps } from './useApi';
 
 type FetchEffectProps<Data> = {
