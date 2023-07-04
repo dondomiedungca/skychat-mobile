@@ -35,6 +35,7 @@ import CameraIcon from './../../../../assets/icons/camera_icon.png';
 import SmileIcon from './../../../../assets/icons/smile_icon.png';
 import MicrophoneIcon from './../../../../assets/icons/microphone_icon.png';
 import DoubleCheckIcon from './../../../../assets/icons/double_check_icon.png';
+import Typing from './../../../../assets/icons/typing.gif';
 import { Conversation } from '../../../types/Conversation';
 import _ from 'lodash';
 
@@ -51,9 +52,11 @@ interface IMessageAsSection {
 }
 
 const Composer = ({
-  handleSend
+  handleSend,
+  socket
 }: {
   handleSend: (text: string | undefined) => void;
+  socket: any;
 }) => {
   const [chat, setChat] = useState<string>();
   const [hide, setHide] = useState<boolean>(false);
@@ -62,6 +65,7 @@ const Composer = ({
   useLayoutEffect(() => {
     const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
       setHide(false);
+      socket.emit('onUserKeyUp', false);
       textInputRef.current?.blur();
     });
 
@@ -74,7 +78,13 @@ const Composer = ({
     <ComposerContainer>
       <TextContainer>
         <StyledTextInput
-          onFocus={() => setHide(true)}
+          onFocus={() => {
+            setHide(true);
+            socket.emit('onUserKeyUp', true);
+          }}
+          onChange={() => {
+            socket.emit('onUserKeyUp', true);
+          }}
           ref={textInputRef}
           value={chat}
           onChangeText={setChat}
@@ -111,6 +121,7 @@ const Composer = ({
       <SendTouchableOpacity
         disabled={!chat}
         onPress={() => {
+          socket.emit('onUserKeyUp', false);
           handleSend(chat);
           setChat(undefined);
         }}
@@ -133,6 +144,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     user?.users_conversations?.[0]?.conversation?.id
   );
   const [messages, setMessages] = useState<IMessageAsSection[]>([]);
+  const [typing, setTyping] = useState<boolean>(false);
 
   const socket = useMemo(() => {
     // listen for newly created conversation entity, this is useful for joining room
@@ -172,6 +184,8 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
         parties: [user.id, currentUser?.id]
       });
     }
+
+    socket.on('onUserKeyUp', (payload) => setTyping(payload));
 
     return () => {
       socket.disconnect();
@@ -336,7 +350,22 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
         ) : (
           <EmptyChat />
         )}
-        <Composer handleSend={handleSend} />
+        {typing && (
+          <TypingContainer>
+            <Image
+              style={{ width: 20, height: 20, marginLeft: 5 }}
+              source={Typing}
+            />
+            <Typography
+              title={`${
+                user.firstName || user.lastName || user.email || 'User'
+              } is typing`}
+              size={12}
+              color={Colors.grey}
+            />
+          </TypingContainer>
+        )}
+        <Composer handleSend={handleSend} socket={socket} />
       </Container>
     </MainContainer>
   );
@@ -428,12 +457,23 @@ const Bubble = styled.View<{ isYours?: boolean }>`
   padding: 10px;
   max-width: 50%;
   min-width: 100px;
-  background: ${({ isYours }) => (isYours ? Colors.primary : Colors.away)};
+  background: ${({ isYours }) => (isYours ? Colors.blue : Colors.away)};
   ${({ isYours }) => {
     return isYours
       ? 'border-bottom-right-radius: 0;'
       : 'border-bottom-left-radius: 0;';
   }}
+`;
+
+const TypingContainer = styled.View`
+  width: 100%;
+  min-height: 20px;
+  background: ${Colors.white};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 10px;
 `;
 
 export default ChatRoom;
