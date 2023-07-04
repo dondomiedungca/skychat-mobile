@@ -6,8 +6,7 @@ import React, {
   useCallback,
   useRef,
   useMemo,
-  useLayoutEffect,
-  useEffect
+  useLayoutEffect
 } from 'react';
 import styled from 'styled-components/native';
 import { IMessage } from 'react-native-gifted-chat';
