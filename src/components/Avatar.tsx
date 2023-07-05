@@ -7,18 +7,20 @@ import ActiveIcon from './../../assets/icons/online_icon.png';
 import OfflineIcon from './../../assets/icons/offline_icon.png';
 
 const Avatar = ({
+  style,
   source,
   size,
   showActive = true,
   active
 }: {
+  style?: any;
   source: string | undefined;
   size: number;
   showActive?: boolean;
   active?: boolean;
 }) => {
   return (
-    <Container>
+    <Container style={style}>
       <ModuleAvatar.Image
         size={size || 35}
         source={{ uri: source || 'https://i.pravatar.cc/100' }}

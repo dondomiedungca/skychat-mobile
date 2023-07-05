@@ -11,15 +11,15 @@ export const useFetchChats = () => {
   const fetch = async ({
     parties,
     conversation_id,
-    page,
+    currentLength,
     search
   }: {
     parties: string[];
     conversation_id?: string;
-    page: number;
+    currentLength: number;
     search?: string;
   }) => {
-    return makeRequest?.({ conversation_id, search, page, parties });
+    return makeRequest?.({ conversation_id, search, currentLength, parties });
   };
 
   return {

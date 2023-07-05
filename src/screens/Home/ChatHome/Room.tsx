@@ -10,7 +10,13 @@ import React, {
 } from 'react';
 import styled from 'styled-components/native';
 import { IMessage } from 'react-native-gifted-chat';
-import { Animated, Image, Keyboard } from 'react-native';
+import {
+  Animated,
+  Dimensions,
+  Image,
+  Keyboard,
+  RefreshControl
+} from 'react-native';
 import uuid from 'react-native-uuid';
 import moment from 'moment';
 import { io } from 'socket.io-client';
@@ -40,6 +46,7 @@ import { Conversation } from '../../../types/Conversation';
 import _ from 'lodash';
 
 const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
+const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
 type RoomScreenProps = {
   navigation: StackNavigationProp<RootParamList>;
@@ -80,7 +87,6 @@ const Composer = ({
         <StyledTextInput
           onFocus={() => {
             setHide(true);
-            socket.emit('onUserKeyUp', true);
           }}
           onChange={() => {
             socket.emit('onUserKeyUp', true);
@@ -145,6 +151,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   );
   const [messages, setMessages] = useState<IMessageAsSection[]>([]);
   const [typing, setTyping] = useState<boolean>(false);
+  const [loadMore, setLoadMore] = useState<boolean>(false);
 
   const socket = useMemo(() => {
     // listen for newly created conversation entity, this is useful for joining room
@@ -179,8 +186,8 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   useLayoutEffect(() => {
     if (currentUser) {
       fetchChats({
-        conversation_id: conversation_id,
-        page: 1,
+        conversation_id,
+        currentLength: messages.length,
         parties: [user.id, currentUser?.id]
       });
     }
@@ -211,8 +218,12 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
         title: key,
         data: finalData.get(key).map((chat: Chat) => chat.chat_meta)
       }));
-
-      setMessages(sections);
+      if (loadMore) {
+        setMessages((prev) => [...sections, ...prev]);
+      } else {
+        setMessages(sections);
+      }
+      setLoadMore(false);
     }
   });
 
@@ -234,23 +245,21 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     const msg = {
       msg: {
         ...data,
-        user: { ...data.user, avatar: user.user_meta?.profile_photo }
+        user: { ...data.user, avatar: currentUser?.user_meta?.profile_photo }
       },
       conversation_id,
       parties: [user.id, currentUser?.id].filter(Boolean)
     };
-    updateMessages({
-      msg: {
-        ...data,
-        user: { ...data.user, avatar: user.user_meta?.profile_photo }
-      }
+    // updateMessages({
+    //   msg: {
+    //     ...data,
+    //     user: { ...data.user, avatar: user.user_meta?.profile_photo }
+    //   }
+    // });
+    socket.emit('sendChat', {
+      msg,
+      conversation_id
     });
-    if (conversation_id) {
-      socket.emit('sendChat', {
-        msg,
-        conversation_id
-      });
-    }
     sendChat(msg);
   }, []);
 
@@ -283,10 +292,37 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   }, []);
 
   const Item = useCallback(({ section }: { section: IMessageAsSection }) => {
+    const isChild = useCallback((index: number) => {
+      if (index !== 0) {
+        if (
+          section.data[index].user._id !== currentUser?.id &&
+          section.data[index - 1].user._id === section.data[index].user._id
+        ) {
+          return true;
+        }
+      }
+
+      return false;
+    }, []);
+
+    const showAvatar = useCallback((index: number) => {
+      if (index == 0) {
+        if (section.data[index].user._id !== currentUser?.id) return true;
+      } else {
+        if (
+          section.data[index - 1].user._id !== section.data[index].user._id &&
+          section.data[index].user._id !== currentUser?.id
+        )
+          return true;
+      }
+
+      return false;
+    }, []);
+
     return (
       <>
         {section.data.length &&
-          section.data.map((message: IMessage) => (
+          section.data.map((message: IMessage, index: number) => (
             <WholeMessageContainer
               key={message._id}
               style={{
@@ -296,7 +332,18 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
                     : 'flex-start'
               }}
             >
-              <Bubble isYours={message.user._id == currentUser?.id}>
+              {showAvatar(index) && (
+                <Avatar
+                  style={{ marginRight: 10 }}
+                  showActive={false}
+                  source={message.user.avatar as string}
+                  size={30}
+                />
+              )}
+              <Bubble
+                isChild={isChild(index)}
+                isYours={message.user._id == currentUser?.id}
+              >
                 <Typography
                   title={message.text}
                   size={14}
@@ -346,6 +393,30 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
             keyExtractor={(item: any) => item.title}
             showsVerticalScrollIndicator={false}
             inverted
+            refreshControl={
+              <RefreshControl
+                progressViewOffset={SCREEN_HEIGHT / 2}
+                progressBackgroundColor={Colors.white}
+                refreshing={
+                  loadMore &&
+                  messages
+                    .map((section) => section.data.length)
+                    .reduce((a, b) => a + b, 0) >= 15
+                }
+                onRefresh={() => {
+                  fetchChats({
+                    currentLength: messages
+                      .map((section) => section.data.length)
+                      .reduce((a, b) => a + b, 0),
+                    conversation_id,
+                    parties: [user.id, currentUser?.id!]
+                  });
+                }}
+              />
+            }
+            onEndReached={() => {
+              setLoadMore(true);
+            }}
           />
         ) : (
           <EmptyChat />
@@ -448,14 +519,15 @@ const StyledFlatList = styled.FlatList`
 const WholeMessageContainer = styled.View`
   display: flex;
   flex-direction: row;
+  align-items: center;
   width: 100%;
   margin-bottom: 10px;
 `;
 
-const Bubble = styled.View<{ isYours?: boolean }>`
+const Bubble = styled.View<{ isYours?: boolean; isChild: boolean }>`
   border-radius: 10px;
-  padding: 10px;
-  max-width: 50%;
+  padding: 7px;
+  max-width: 80%;
   min-width: 100px;
   background: ${({ isYours }) => (isYours ? Colors.blue : Colors.away)};
   ${({ isYours }) => {
@@ -463,6 +535,7 @@ const Bubble = styled.View<{ isYours?: boolean }>`
       ? 'border-bottom-right-radius: 0;'
       : 'border-bottom-left-radius: 0;';
   }}
+  margin-left: ${({ isChild }) => (isChild ? '40px' : '0')};
 `;
 
 const TypingContainer = styled.View`
