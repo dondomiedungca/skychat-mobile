@@ -6,17 +6,12 @@ import React, {
   useCallback,
   useRef,
   useMemo,
-  useLayoutEffect
+  useLayoutEffect,
+  useEffect
 } from 'react';
 import styled from 'styled-components/native';
 import { IMessage } from 'react-native-gifted-chat';
-import {
-  Animated,
-  Dimensions,
-  Image,
-  Keyboard,
-  RefreshControl
-} from 'react-native';
+import { Animated, Image, Keyboard } from 'react-native';
 import uuid from 'react-native-uuid';
 import moment from 'moment';
 import { io } from 'socket.io-client';
@@ -42,11 +37,11 @@ import SmileIcon from './../../../../assets/icons/smile_icon.png';
 import MicrophoneIcon from './../../../../assets/icons/microphone_icon.png';
 import DoubleCheckIcon from './../../../../assets/icons/double_check_icon.png';
 import Typing from './../../../../assets/icons/typing.gif';
+import LoadMore from './../../../../assets/icons/loadMore.gif';
 import { Conversation } from '../../../types/Conversation';
 import _ from 'lodash';
 
 const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
-const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
 type RoomScreenProps = {
   navigation: StackNavigationProp<RootParamList>;
@@ -152,6 +147,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   const [messages, setMessages] = useState<IMessageAsSection[]>([]);
   const [typing, setTyping] = useState<boolean>(false);
   const [loadMore, setLoadMore] = useState<boolean>(false);
+  const [allChats, setAllChats] = useState<number>(0);
 
   const socket = useMemo(() => {
     // listen for newly created conversation entity, this is useful for joining room
@@ -162,6 +158,14 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
       }
     });
   }, [conversation_id]);
+
+  const isGatheredAllData = useMemo(() => {
+    return (
+      messages
+        .map((section) => section.data.length)
+        .reduce((a, b) => a + b, 0) >= allChats
+    );
+  }, [messages, allChats]);
 
   const updateMessages = useCallback(
     (payload: any) => {
@@ -209,9 +213,23 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     };
   }, [messages]);
 
+  useEffect(() => {
+    if (loadMore) {
+      fetchChats({
+        currentLength: messages
+          .map((section) => section.data.length)
+          .reduce((a, b) => a + b, 0),
+        conversation_id,
+        parties: [user.id, currentUser?.id!]
+      });
+    }
+  }, [loadMore]);
+
   useFetchEffect(handleFetchChats, {
-    onData: (data: Chat[]) => {
-      const finalData = _(data).groupBy((v) =>
+    onData: (data: { allchat: number; chats: Chat[] }) => {
+      setAllChats(data.allchat);
+
+      const finalData = _(data.chats).groupBy((v) =>
         moment(v.chat_meta.createdAt).format('MMMM DD, YYYY')
       );
       const sections = Object.keys(finalData.toJSON()).map((key) => ({
@@ -219,7 +237,26 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
         data: finalData.get(key).map((chat: Chat) => chat.chat_meta)
       }));
       if (loadMore) {
-        setMessages((prev) => [...sections, ...prev]);
+        setMessages((prev) => {
+          let previous = [...prev];
+
+          for (const sec of sections) {
+            const possibleIndex = previous.findIndex(
+              (pr) => pr.title === sec.title
+            );
+
+            if (possibleIndex !== -1) {
+              previous[possibleIndex].data = [
+                ...previous[possibleIndex].data,
+                ...sec.data
+              ];
+            } else {
+              previous = [...previous, sec];
+            }
+          }
+
+          return previous;
+        });
       } else {
         setMessages(sections);
       }
@@ -250,12 +287,6 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
       conversation_id,
       parties: [user.id, currentUser?.id].filter(Boolean)
     };
-    // updateMessages({
-    //   msg: {
-    //     ...data,
-    //     user: { ...data.user, avatar: user.user_meta?.profile_photo }
-    //   }
-    // });
     socket.emit('sendChat', {
       msg,
       conversation_id
@@ -387,37 +418,26 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     >
       <Container>
         {messages.length ? (
-          <StyledFlatList
-            data={messages}
-            renderItem={({ item }: { item: any }) => <Item section={item} />}
-            keyExtractor={(item: any) => item.title}
-            showsVerticalScrollIndicator={false}
-            inverted
-            refreshControl={
-              <RefreshControl
-                progressViewOffset={SCREEN_HEIGHT / 2}
-                progressBackgroundColor={Colors.white}
-                refreshing={
-                  loadMore &&
-                  messages
-                    .map((section) => section.data.length)
-                    .reduce((a, b) => a + b, 0) >= 15
-                }
-                onRefresh={() => {
-                  fetchChats({
-                    currentLength: messages
-                      .map((section) => section.data.length)
-                      .reduce((a, b) => a + b, 0),
-                    conversation_id,
-                    parties: [user.id, currentUser?.id!]
-                  });
-                }}
-              />
-            }
-            onEndReached={() => {
-              setLoadMore(true);
-            }}
-          />
+          <>
+            {loadMore && (
+              <LoadMoreContainer>
+                <Image
+                  style={{ width: 20, height: 20, marginLeft: 5 }}
+                  source={LoadMore}
+                />
+              </LoadMoreContainer>
+            )}
+            <StyledFlatList
+              data={messages}
+              renderItem={({ item }: { item: any }) => <Item section={item} />}
+              keyExtractor={(item: any) => item.title}
+              showsVerticalScrollIndicator={false}
+              inverted
+              onEndReached={() => {
+                if (!isGatheredAllData) setLoadMore(true);
+              }}
+            />
+          </>
         ) : (
           <EmptyChat />
         )}
@@ -506,7 +526,6 @@ const StyledTextInput = styled.TextInput`
 `;
 
 const TimeContainer = styled.View`
-  float: right;
   diplay: flex;
   flex-direction: row;
   align-items: center;
@@ -547,6 +566,16 @@ const TypingContainer = styled.View`
   justify-content: center;
   flex-direction: row;
   gap: 10px;
+`;
+
+const LoadMoreContainer = styled(Animated.View)`
+  width: 100%;
+  height: 40px;
+  background: ${Colors.white};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
 `;
 
 export default ChatRoom;
