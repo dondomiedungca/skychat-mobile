@@ -62,4 +62,5 @@ const StyledContainer = styled.View`
   align-items: center;
   padding: 0 10px 0 10px;
   gap: 20px;
+  background: ${Colors.white};
 `;

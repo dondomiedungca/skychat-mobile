@@ -66,7 +66,7 @@ export default ({ navigation, state }: BottomTabBarProps) => {
 
 const StyledView = styled.View`
   width: 100%;
-  background: ${Colors.white_light_dark};
+  background: ${Colors.white};
   display: flex;
   justify-content: space-around;
   align-items: center;

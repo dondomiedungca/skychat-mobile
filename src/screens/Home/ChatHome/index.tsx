@@ -19,9 +19,16 @@ import {
   ListRenderItemInfo,
   Dimensions,
   TouchableOpacity,
-  RefreshControl
+  RefreshControl,
+  Animated
 } from 'react-native';
 import Avatar from '../../../components/Avatar';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView
+} from 'react-native-gesture-handler';
+import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 const HEIGHT = Dimensions.get('screen').height;
 const WIDTH = Dimensions.get('screen').width;
@@ -85,54 +92,76 @@ export const ChatHome = () => {
     dependencies: [refreshing]
   });
 
+  const translateY = useSharedValue(0);
+
+  const gesture = Gesture.Pan().onUpdate((event) => {
+    console.log(event.translationY);
+    translateY.value = event.translationY;
+  });
+
+  const bottomSheetStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY: translateY.value
+      }
+    ]
+  }));
+
   return (
     <MainContainer header={<HomeHeader />}>
-      <Container
-        refreshControl={
-          <RefreshControl
-            progressBackgroundColor={Colors.white}
-            refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              fetchUsers({ page: 1 });
-            }}
-          />
-        }
-      >
-        <ConnectSection>
-          <Typography
-            title="Connects"
-            size={15}
-            color={Colors.grey_light}
-            fontFamily="Roboto-Medium"
-          />
-          <Connects>
-            <StyledFlatList
-              horizontal
-              keyExtractor={(item, index) => item + index.toString()}
-              data={users}
-              renderItem={({ item }: ListRenderItemInfo<any>) => {
-                return (
-                  <RowContainer>
-                    {item.length &&
-                      item?.map((user: User) => (
-                        <Card key={user.id} user={user} />
-                      ))}
-                  </RowContainer>
-                );
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Container
+          refreshControl={
+            <RefreshControl
+              progressViewOffset={50}
+              progressBackgroundColor={Colors.white}
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                fetchUsers({ page: 1 });
               }}
             />
-          </Connects>
-        </ConnectSection>
-      </Container>
+          }
+        >
+          <ConnectSection>
+            <Typography
+              title="Connects"
+              size={15}
+              color={Colors.grey_light}
+              fontFamily="Roboto-Medium"
+            />
+            <Connects>
+              <StyledFlatList
+                horizontal
+                keyExtractor={(item, index) => item + index.toString()}
+                data={users}
+                renderItem={({ item }: ListRenderItemInfo<any>) => {
+                  return (
+                    <RowContainer>
+                      {item.length &&
+                        item?.map((user: User) => (
+                          <Card key={user.id} user={user} />
+                        ))}
+                    </RowContainer>
+                  );
+                }}
+              />
+            </Connects>
+          </ConnectSection>
+        </Container>
+        <GestureDetector gesture={gesture}>
+          <BottomSheet style={[bottomSheetStyle]}>
+            <Line />
+          </BottomSheet>
+        </GestureDetector>
+      </GestureHandlerRootView>
     </MainContainer>
   );
 };
 
 const Container = styled.ScrollView`
-  height: 100%;
   width: 100%;
-  background: ${Colors.white};
+  background: ${Colors.white_light_dark};
   padding: 0 10px 0 10px;
 `;
 
@@ -152,7 +181,7 @@ const Connects = styled.View`
 const StyledCard = styled.View`
   padding: 15px;
   border-radius: 10px;
-  background: ${Colors.white_light_dark};
+  background: ${Colors.white};
   height: ${CONNECTS_HEIGHT / 2.3}px;
   width: ${WIDTH / 2 - 10}px;
   display: flex;
@@ -172,4 +201,22 @@ const CardMainInfo = styled.View`
   flex-direction: row;
   align-items: center;
   gap: 5px;
+`;
+
+const BottomSheet = styled(Animated.View)`
+  background: ${Colors.white};
+  width: 100%;
+  height: ${HEIGHT}px;
+  position: absolute;
+  top: ${HEIGHT / 2.5}px;
+  border-radius: 30px;
+`;
+
+const Line = styled.View`
+  width: 75px;
+  height: 5px;
+  background: ${Colors.grey};
+  align-self: center;
+  border-radius: 2px;
+  margin-vertical: 15px;
 `;
