@@ -1,0 +1,61 @@
+{
+  "conversation_conversation_meta": {
+    "parties_id": [
+      "09ef9eee-f651-4ba6-9680-b953ccd20219",
+      "96aa1e07-aa97-4760-9a18-2fd4726845bd"
+    ],
+    "parties_name": ["alpha male", "Skychat Provider"],
+    "type": "personal"
+  },
+  "conversation_created_at": "2023-07-10T15:00:52.453Z",
+  "conversation_id": "9c66cc3c-6b62-4c28-b165-431a906145af",
+  "conversation_type": "personal",
+  "conversation_updated_at": "2023-07-10T15:00:52.453Z",
+  "lastMessage": "Hello din po",
+  "lastUser": "\"96aa1e07-aa97-4760-9a18-2fd4726845bd\"",
+  "related_to_created_at": "2023-06-28T10:42:34.717Z",
+  "related_to_deleted_at": null,
+  "related_to_email": "skychat.personal@gmail.com",
+  "related_to_first_name": "Skychat",
+  "related_to_id": "09ef9eee-f651-4ba6-9680-b953ccd20219",
+  "related_to_is_deleted": false,
+  "related_to_last_name": "Provider",
+  "related_to_password": null,
+  "related_to_updated_at": "2023-06-26T10:42:34.717Z",
+  "related_to_user_meta": {
+    "activity": {
+      "isActive": true,
+      "lastActive": "2023-07-09T17:41:45.932Z",
+      "showActivity": true
+    },
+    "google_id": "104020166818383040052",
+    "profile_photo": "https://lh3.googleusercontent.com/a/AAcHTtcXIz2BGrQRBU5ZctUiGlv29K3rhz3FcW3M_XAR=s96-c"
+  },
+  "related_to_verified_at": "2023-06-26T10:42:34.717Z",
+  "unread": "2",
+  "user_created_at": "2023-06-28T10:42:22.337Z",
+  "user_deleted_at": null,
+  "user_email": "personal.alpha.male@gmail.com",
+  "user_first_name": "alpha",
+  "user_id": "96aa1e07-aa97-4760-9a18-2fd4726845bd",
+  "user_is_deleted": false,
+  "user_last_name": "male",
+  "user_password": null,
+  "user_updated_at": "2023-06-26T10:42:22.337Z",
+  "user_user_meta": {
+    "activity": {
+      "isActive": true,
+      "lastActive": "2023-07-09T17:45:23.858Z",
+      "showActivity": true
+    },
+    "google_id": "117871663705573520459",
+    "profile_photo": "https://lh3.googleusercontent.com/a/AAcHTtdCtdhmbALC2W5XJeLKoGhfJaqo-vVmOiSji50r=s96-c"
+  },
+  "user_verified_at": "2023-06-26T10:42:22.337Z",
+  "users_conversations_conversation_id": "9c66cc3c-6b62-4c28-b165-431a906145af",
+  "users_conversations_deleted_at": null,
+  "users_conversations_display_name": "alpha male",
+  "users_conversations_id": 18,
+  "users_conversations_related_to": "09ef9eee-f651-4ba6-9680-b953ccd20219",
+  "users_conversations_user_id": "96aa1e07-aa97-4760-9a18-2fd4726845bd"
+}

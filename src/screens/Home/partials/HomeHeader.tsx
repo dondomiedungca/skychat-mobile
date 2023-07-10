@@ -28,7 +28,11 @@ export const Avatar = () => {
   );
 };
 
-export const HomeHeader = () => {
+export const HomeHeader = ({
+  onPressSearch
+}: {
+  onPressSearch: () => void;
+}) => {
   const [search, setSearch] = useState<string>();
   return (
     <StyledContainer>
@@ -48,6 +52,7 @@ export const HomeHeader = () => {
         label="Search"
         value={search}
         onChange={setSearch}
+        onPress={onPressSearch}
       />
       <Avatar />
     </StyledContainer>

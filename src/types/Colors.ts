@@ -1,7 +1,7 @@
 export default {
   black: '#000000',
   white: '#ffffff',
-  white_light_dark: '#f0f0f0',
+  white_light_dark: '#f7f7f7',
   white_semi_dark: '#ebebeb',
   grey: '#404040',
   grey_light: '#9BABB8',

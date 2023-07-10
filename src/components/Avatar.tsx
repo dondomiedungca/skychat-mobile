@@ -41,7 +41,7 @@ const Container = styled.View`
 
 const StyledActiveIndicator = styled(Image)`
   position: absolute;
-  bottom: 0;
+  bottom: -3px;
   right: 0;
 `;
 

@@ -13,6 +13,7 @@ type CustomTextInputProps = {
   label: string;
   value?: string;
   onChange: (value: string) => void;
+  onPress?: (event: any) => void;
   editable?: boolean;
   [x: string]: any;
 };
@@ -26,6 +27,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   placeholder,
   label,
   onChange,
+  onPress,
   value,
   editable = true,
   ...rest
@@ -49,6 +51,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
       />
       {!!!editable && (
         <TouchableNativeFeedback
+          onPress={onPress}
           background={TouchableNativeFeedback.Ripple('#d6e6ff', true)}
         >
           <ExtraNav />

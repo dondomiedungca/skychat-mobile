@@ -287,10 +287,14 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
       conversation_id,
       parties: [user.id, currentUser?.id].filter(Boolean)
     };
-    socket.emit('sendChat', {
-      msg,
-      conversation_id
-    });
+    if (!conversation_id) {
+      updateMessages(msg);
+    } else {
+      socket.emit('sendChat', {
+        msg,
+        conversation_id
+      });
+    }
     sendChat(msg);
   }, []);
 

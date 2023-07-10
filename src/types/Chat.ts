@@ -13,6 +13,8 @@ export interface Chat {
 
   chat_meta: IMessage;
 
+  readed_at?: Date;
+
   deleted_at?: Date;
 
   deleted_by?: User;

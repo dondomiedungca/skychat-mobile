@@ -8,6 +8,8 @@ export interface UsersConversations {
 
   user: User;
 
+  related_to: User;
+
   conversation: Conversation;
 
   deleted_at: Date;
