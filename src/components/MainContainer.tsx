@@ -3,6 +3,7 @@ import { Keyboard, Dimensions, StatusBar } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styled from 'styled-components/native';
+import Colors from '../types/Colors';
 import { ContentLoadingWrapper } from './ContentLoadingWrapper';
 
 interface Props {
@@ -11,16 +12,19 @@ interface Props {
   hiddenStatusBar?: boolean;
   isLoading?: boolean;
   disableTouchableFeedback?: boolean;
+  withBottomTabSpace?: boolean;
 }
 
 const FULL_WIDTH = Dimensions.get('screen').width;
+const FULL_HEIGHT = Dimensions.get('screen').height - 100;
 
 const MainContainer: React.FC<Props> = ({
   children,
   header,
   isLoading = false,
   hiddenStatusBar = false,
-  disableTouchableFeedback = false
+  disableTouchableFeedback = false,
+  withBottomTabSpace = false
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -31,7 +35,7 @@ const MainContainer: React.FC<Props> = ({
           onPress={() => Keyboard.dismiss()}
           accessible={false}
         >
-          <StyledContainer>
+          <StyledContainer withBottomTabSpace={withBottomTabSpace}>
             <StatusBar
               barStyle={'dark-content'}
               backgroundColor={isLoading ? 'rgba(0,0,0,0.7)' : 'white'}
@@ -43,7 +47,7 @@ const MainContainer: React.FC<Props> = ({
         </TouchableWithoutFeedback>
       )}
       {disableTouchableFeedback && (
-        <StyledContainer>
+        <StyledContainer withBottomTabSpace={withBottomTabSpace}>
           <StatusBar
             barStyle={'dark-content'}
             backgroundColor={isLoading ? 'rgba(0,0,0,0.7)' : 'white'}
@@ -66,8 +70,10 @@ const HeaderStyled = styled.View`
   left: 0;
 `;
 
-const StyledContainer = styled.View`
+const StyledContainer = styled.View<{ withBottomTabSpace?: boolean }>`
   width: ${FULL_WIDTH}px;
   height: 100%;
-  background: transparent;
+  background: ${Colors.white};
+  ${({ withBottomTabSpace }) =>
+    withBottomTabSpace ? 'padding-bottom: 70px;' : ''}
 `;

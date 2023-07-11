@@ -14,7 +14,7 @@ export type ContentLoadingWrapperTypes = {
 
 export const ContentLoadingWrapper: React.FC<ContentLoadingWrapperTypes> = ({
   children,
-  isLoading,
+  isLoading
 }) => {
   return (
     <Container>
@@ -24,7 +24,7 @@ export const ContentLoadingWrapper: React.FC<ContentLoadingWrapperTypes> = ({
             style={{
               width: 120,
               height: 120,
-              ...(isLoading && { marginTop: -StatusBar.currentHeight! }),
+              ...(isLoading && { marginTop: -StatusBar.currentHeight! })
             }}
             source={spinner}
           />

@@ -35,7 +35,8 @@ export const useSigninWithGoogle = (): UseApiReturnProps => {
           lastName: decoded.lastName,
           email: decoded.email,
           roles: decoded.roles,
-          user_meta: decoded?.user_meta
+          user_meta: decoded?.user_meta,
+          created_at: decoded?.createdAt
         });
       };
 

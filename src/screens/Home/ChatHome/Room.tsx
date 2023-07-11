@@ -149,12 +149,22 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   const [loadMore, setLoadMore] = useState<boolean>(false);
   const [allChats, setAllChats] = useState<number>(0);
 
+  const getTemporaryConversationId = useMemo(() => {
+    const parties = [currentUser, user].sort(
+      (a, b) =>
+        new Date(b?.created_at!).getTime() - new Date(a?.created_at!).getTime()
+    );
+
+    return parties.map((p) => p?.id).join('_room_');
+  }, [currentUser, user]);
+
   const socket = useMemo(() => {
     // listen for newly created conversation entity, this is useful for joining room
-    // if conversation was changed from undefined to entity, update the socket connection for passing the hash as room
+    // if conversation was changed from temporary to entity, update the socket connection for passing the hash as room
+
     return io(`${BASE_URL}/chats`, {
       query: {
-        conversation_id
+        conversation_id: conversation_id || getTemporaryConversationId
       }
     });
   }, [conversation_id]);
@@ -197,6 +207,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     }
 
     socket.on('onUserKeyUp', (payload) => setTyping(payload));
+    socket.on('onNewConverrsationId', (payload) => setConversationId(payload));
 
     return () => {
       socket.disconnect();
@@ -211,9 +222,9 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     return () => {
       socket.off('receiveChat');
     };
-  }, [messages]);
+  }, [messages, socket, conversation_id]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (loadMore) {
       fetchChats({
         currentLength: messages
@@ -266,37 +277,38 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
 
   useFetchEffect(handleSendChat, {
     onData: (data: Conversation) => {
-      setConversationId(data.id);
+      if (conversation_id !== data.id) {
+        socket.emit('onNewConverrsationId');
+      }
     }
   });
 
-  const handleSend = useCallback((chat: string | undefined) => {
-    const data: IMessage = {
-      _id: uuid.v4() as string,
-      text: chat as string,
-      createdAt: new Date(),
-      user: {
-        _id: currentUser?.id!
-      }
-    };
-    const msg = {
-      msg: {
-        ...data,
-        user: { ...data.user, avatar: currentUser?.user_meta?.profile_photo }
-      },
-      conversation_id,
-      parties: [user.id, currentUser?.id].filter(Boolean)
-    };
-    if (!conversation_id) {
-      updateMessages(msg);
-    } else {
+  const handleSend = useCallback(
+    (chat: string | undefined) => {
+      const data: IMessage = {
+        _id: uuid.v4() as string,
+        text: chat as string,
+        createdAt: new Date(),
+        user: {
+          _id: currentUser?.id!
+        }
+      };
+      const msg = {
+        msg: {
+          ...data,
+          user: { ...data.user, avatar: currentUser?.user_meta?.profile_photo }
+        },
+        conversation_id: conversation_id,
+        parties: [user.id, currentUser?.id].filter(Boolean)
+      };
       socket.emit('sendChat', {
         msg,
-        conversation_id
+        conversation_id: conversation_id || getTemporaryConversationId
       });
-    }
-    sendChat(msg);
-  }, []);
+      sendChat(msg);
+    },
+    [conversation_id]
+  );
 
   const EmptyChat = useCallback(() => {
     return (

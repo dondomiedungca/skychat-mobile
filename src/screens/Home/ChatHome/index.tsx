@@ -36,9 +36,11 @@ import {
   Dimensions,
   TouchableOpacity,
   RefreshControl,
-  View
+  View,
+  Image
 } from 'react-native';
 import { UserContext } from '../../Auth/context/UserContext';
+import EmptyState from './../../../../assets/png/empty_state.jpg';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
@@ -153,10 +155,6 @@ export const ChatHome = () => {
 
   useFetchEffect(handleRecentConversations, {
     onData: (data: any) => {
-      data.map((d: any) => {
-        console.log(d);
-        console.log('\n\n\n\n');
-      });
       setRecentConversations(data);
     }
   });
@@ -173,7 +171,10 @@ export const ChatHome = () => {
   }, []);
 
   return (
-    <MainContainer header={<HomeHeader onPressSearch={onPressSearch} />}>
+    <MainContainer
+      withBottomTabSpace
+      header={<HomeHeader onPressSearch={onPressSearch} />}
+    >
       <View>
         <Container
           refreshControl={
@@ -280,62 +281,75 @@ export const ChatHome = () => {
             </Filter>
           </TouchableOpacity>
         </GroupFilters>
-        <RecentList
-          showsVerticalScrollIndicator={false}
-          data={recentConversations}
-          keyExtractor={(item: any, index) => item.users_conversations_id}
-          renderItem={({ item }: ListRenderItemInfo<any>) => {
-            return (
-              <TouchableOpacity delayPressIn={50}>
-                <MessageContainer>
-                  <Avatar
-                    source={item.user_user_meta.profile_photo}
-                    size={40}
-                    active={true}
-                  />
-                  <MessageTextContainer>
-                    <Typography
-                      title={`${item.user_first_name} ${item.user_last_name}`}
-                      size={15}
-                      color={Colors.grey}
-                      fontFamily="Roboto-Bold"
-                      numberOfLines={1}
+        {recentConversations.length ? (
+          <RecentList
+            showsVerticalScrollIndicator={false}
+            data={recentConversations}
+            keyExtractor={(item: any, index) => item.users_conversations_id}
+            renderItem={({ item }: ListRenderItemInfo<any>) => {
+              return (
+                <TouchableOpacity delayPressIn={50}>
+                  <MessageContainer>
+                    <Avatar
+                      source={item.user_user_meta.profile_photo}
+                      size={40}
+                      active={true}
                     />
-                    <Typography
-                      numberOfLines={1}
-                      title={`${
-                        item.lastUser.replaceAll('"', '') === currentUser?.id
-                          ? 'Me: '
-                          : ''
-                      }${item.lastMessage}`}
-                      fontFamily="Roboto-Medium"
-                      size={12}
-                      color={
-                        parseInt(item.unread) ? Colors.grey : Colors.grey_light
-                      }
-                    />
-                  </MessageTextContainer>
-                  <DetailsContainer>
-                    <Typography
-                      title={moment(item.lastDateTime).format('h:mm A')}
-                      size={10}
-                      color={Colors.grey_light}
-                    />
-                    {parseInt(item.unread) > 0 && (
-                      <Badge>
-                        <Typography
-                          title={item.unread}
-                          size={10}
-                          color={Colors.white}
-                        />
-                      </Badge>
-                    )}
-                  </DetailsContainer>
-                </MessageContainer>
-              </TouchableOpacity>
-            );
-          }}
-        ></RecentList>
+                    <MessageTextContainer>
+                      <Typography
+                        title={`${item.user_first_name} ${item.user_last_name}`}
+                        size={15}
+                        color={Colors.grey}
+                        fontFamily="Roboto-Bold"
+                        numberOfLines={1}
+                      />
+                      <Typography
+                        numberOfLines={1}
+                        title={`${
+                          item.lastUser.replaceAll('"', '') === currentUser?.id
+                            ? 'Me: '
+                            : ''
+                        }${item.lastMessage}`}
+                        fontFamily="Roboto-Medium"
+                        size={12}
+                        color={
+                          parseInt(item.unread)
+                            ? Colors.grey
+                            : Colors.grey_light
+                        }
+                      />
+                    </MessageTextContainer>
+                    <DetailsContainer>
+                      <Typography
+                        title={moment(item.lastDateTime).format('h:mm A')}
+                        size={10}
+                        color={Colors.grey_light}
+                      />
+                      {parseInt(item.unread) > 0 && (
+                        <Badge>
+                          <Typography
+                            title={item.unread}
+                            size={10}
+                            color={Colors.white}
+                          />
+                        </Badge>
+                      )}
+                    </DetailsContainer>
+                  </MessageContainer>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        ) : (
+          <EmptyRecentList>
+            <StyledEmptyImage source={EmptyState} />
+            <Typography
+              title={'No messages'}
+              size={15}
+              color={Colors.grey_light}
+            />
+          </EmptyRecentList>
+        )}
       </RecentContainer>
       <BottomSheetView ref={ref}></BottomSheetView>
     </MainContainer>
@@ -356,7 +370,7 @@ const ConnectSection = styled.View`
 const RecentContainer = styled.View`
   background: ${Colors.white};
   width: 100%;
-  padding: 5px 10px 0 10px;
+  padding: 15px 10px 0 10px;
   flex: 1;
 `;
 
@@ -446,7 +460,7 @@ const GroupFilters = styled.View`
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 15px;
   gap: 10px;
 `;
 
@@ -460,4 +474,19 @@ const Filter = styled.View<{ background: string }>`
   align-items: center;
   padding-left: 7px;
   padding-right: 7px;
+`;
+
+const EmptyRecentList = styled.View`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: ${Colors.white};
+`;
+
+const StyledEmptyImage = styled.Image`
+  width: 50%;
+  height: 50%;
 `;

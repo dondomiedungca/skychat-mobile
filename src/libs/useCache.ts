@@ -41,7 +41,8 @@ export const useCacheApp = () => {
           lastName: response?.lastName,
           email: response?.email,
           roles: response?.roles,
-          user_meta: response?.user_meta
+          user_meta: response?.user_meta,
+          created_at: response?.created_at
         });
       }
     }
