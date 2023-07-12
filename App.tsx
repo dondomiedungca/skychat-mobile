@@ -10,7 +10,9 @@ import { useCacheApp } from './src/libs/useCache';
 //components
 import SplashScreenComponent from './src/components/SplashScreen';
 import Navigation from './src/screens/navigation';
-import UserContextComponent from './src/screens/Auth/context/UserContext';
+import UserContextComponent from './src/context/user.context';
+import RecentConversationContextComponent from './src/context/recent-conversation.context';
+import ReelsUsersContextComponent from './src/context/reels-of-users.context';
 
 const App = () => {
   const { appIsReady } = useCacheApp();
@@ -30,9 +32,13 @@ const App = () => {
 
 export default function Main() {
   return (
-    <UserContextComponent>
-      <App />
-    </UserContextComponent>
+    <ReelsUsersContextComponent>
+      <UserContextComponent>
+        <RecentConversationContextComponent>
+          <App />
+        </RecentConversationContextComponent>
+      </UserContextComponent>
+    </ReelsUsersContextComponent>
   );
 }
 

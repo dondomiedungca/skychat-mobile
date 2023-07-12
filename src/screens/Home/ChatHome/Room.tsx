@@ -10,19 +10,18 @@ import React, {
   useEffect
 } from 'react';
 import styled from 'styled-components/native';
-import { IMessage } from 'react-native-gifted-chat';
 import { Animated, Image, Keyboard } from 'react-native';
-import uuid from 'react-native-uuid';
 import moment from 'moment';
 import { io } from 'socket.io-client';
 import Constants from 'expo-constants';
+import uuid from 'react-native-uuid';
 
 import MainContainer from '../../../components/MainContainer';
 import RoomHeader from '../../../components/RoomHeader';
 import Colors from '../../../types/Colors';
 import { ChatRoomStackParamList, RootParamList } from '../../navigation';
 
-import { UserContext } from '../../Auth/context/UserContext';
+import { UserContext } from '../../../context/user.context';
 import { useFetchEffect } from '../../../libs/useFetchEffect';
 import { useFetchChats, useSendChat } from '../../../libs/useChat';
 import Avatar from '../../../components/Avatar';
@@ -40,6 +39,9 @@ import Typing from './../../../../assets/icons/typing.gif';
 import LoadMore from './../../../../assets/icons/loadMore.gif';
 import { Conversation } from '../../../types/Conversation';
 import _ from 'lodash';
+import { ReelsUsersContext } from '../../../context/reels-of-users.context';
+import { User } from '../../../types/User';
+import { UsersConversations } from '../../../types/UsersConversations';
 
 const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
 
@@ -48,9 +50,15 @@ type RoomScreenProps = {
   route: RouteProp<ChatRoomStackParamList, 'Room'>;
 };
 
-interface IMessageAsSection {
+interface ChatsAsSection {
   title: string;
-  data: IMessage[];
+  data: Partial<Chat>[];
+}
+
+export interface ChatPayload {
+  payload: Partial<Chat>;
+  conversation_id?: string;
+  parties: (string | undefined)[];
 }
 
 const Composer = ({
@@ -139,12 +147,14 @@ const Composer = ({
 const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   const user = route?.params?.user;
   const { user: currentUser } = useContext(UserContext);
+  const { users: reelsUsers, setUsers: setUsersReels } =
+    useContext(ReelsUsersContext);
   const { makeRequest: fetchChats, ...handleFetchChats } = useFetchChats();
   const { makeRequest: sendChat, ...handleSendChat } = useSendChat();
   const [conversation_id, setConversationId] = useState<string | undefined>(
     user?.users_conversations?.[0]?.conversation?.id
   );
-  const [messages, setMessages] = useState<IMessageAsSection[]>([]);
+  const [messages, setMessages] = useState<ChatsAsSection[]>([]);
   const [typing, setTyping] = useState<boolean>(false);
   const [loadMore, setLoadMore] = useState<boolean>(false);
   const [allChats, setAllChats] = useState<number>(0);
@@ -178,18 +188,17 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   }, [messages, allChats]);
 
   const updateMessages = useCallback(
-    (payload: any) => {
-      const msg: IMessage = payload.msg;
-      const keyDate = moment(msg.createdAt).format('MMMM DD, YYYY');
+    (chat: ChatPayload['payload']) => {
+      const keyDate = moment(chat.created_at).format('MMMM DD, YYYY');
       let copy = [...messages];
       const sectionIndex = copy.findIndex((section) => {
         return (section.title as string) == (keyDate as string);
       });
 
       if (sectionIndex == -1) {
-        copy = [{ title: keyDate, data: [msg] }, ...copy];
+        copy = [{ title: keyDate, data: [chat] }, ...copy];
       } else {
-        copy[sectionIndex].data = [msg, ...copy[sectionIndex].data];
+        copy[sectionIndex].data = [chat, ...copy[sectionIndex].data];
       }
 
       setMessages(copy);
@@ -206,8 +215,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
       });
     }
 
-    socket.on('onUserKeyUp', (payload) => setTyping(payload));
-    socket.on('onNewConverrsationId', (payload) => setConversationId(payload));
+    socket.on('onNewConversationId', (payload) => setConversationId(payload));
 
     return () => {
       socket.disconnect();
@@ -218,9 +226,11 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     socket.on('receiveChat', (payload) => {
       updateMessages(payload);
     });
+    socket.on('onUserKeyUp', (payload) => setTyping(payload));
 
     return () => {
       socket.off('receiveChat');
+      socket.off('onUserKeyUp');
     };
   }, [messages, socket, conversation_id]);
 
@@ -234,18 +244,18 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
         parties: [user.id, currentUser?.id!]
       });
     }
-  }, [loadMore]);
+  }, [loadMore, conversation_id]);
 
   useFetchEffect(handleFetchChats, {
     onData: (data: { allchat: number; chats: Chat[] }) => {
       setAllChats(data.allchat);
 
       const finalData = _(data.chats).groupBy((v) =>
-        moment(v.chat_meta.createdAt).format('MMMM DD, YYYY')
+        moment(v.created_at).format('MMMM DD, YYYY')
       );
       const sections = Object.keys(finalData.toJSON()).map((key) => ({
         title: key,
-        data: finalData.get(key).map((chat: Chat) => chat.chat_meta)
+        data: finalData.get(key).map((chat: Chat) => chat)
       }));
       if (loadMore) {
         setMessages((prev) => {
@@ -276,36 +286,57 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   });
 
   useFetchEffect(handleSendChat, {
-    onData: (data: Conversation) => {
-      if (conversation_id !== data.id) {
-        socket.emit('onNewConverrsationId');
+    onData: (data: UsersConversations) => {
+      if (conversation_id !== data.conversation.id) {
+        let targetUser: User | undefined = undefined;
+        let firstIndex: number = 0;
+        let secondIndex: number = 0;
+
+        for (let index = 0; index < reelsUsers!.length; index++) {
+          const element = reelsUsers![index];
+          firstIndex = index;
+          secondIndex = element.findIndex((u) => u.id == user.id);
+          if (secondIndex !== -1) {
+            targetUser = reelsUsers![firstIndex][secondIndex];
+            break;
+          }
+        }
+
+        if (!!targetUser) {
+          const copy = [...reelsUsers!];
+          copy[firstIndex][secondIndex] = {
+            ...copy[firstIndex][secondIndex],
+            users_conversations: [data]
+          };
+          setUsersReels(copy);
+        }
+
+        socket.emit('onNewConversationId', data.conversation.id);
       }
     }
   });
 
   const handleSend = useCallback(
     (chat: string | undefined) => {
-      const data: IMessage = {
-        _id: uuid.v4() as string,
-        text: chat as string,
-        createdAt: new Date(),
-        user: {
-          _id: currentUser?.id!
+      const data: ChatPayload = {
+        conversation_id: conversation_id,
+        parties: [user.id, currentUser?.id].filter(Boolean),
+        payload: {
+          text: chat!,
+          chat_meta: {
+            user: {
+              _id: currentUser?.id!,
+              avatar: currentUser?.user_meta?.profile_photo
+            }
+          },
+          created_at: new Date()
         }
       };
-      const msg = {
-        msg: {
-          ...data,
-          user: { ...data.user, avatar: currentUser?.user_meta?.profile_photo }
-        },
-        conversation_id: conversation_id,
-        parties: [user.id, currentUser?.id].filter(Boolean)
-      };
       socket.emit('sendChat', {
-        msg,
+        data,
         conversation_id: conversation_id || getTemporaryConversationId
       });
-      sendChat(msg);
+      sendChat(data);
     },
     [conversation_id]
   );
@@ -338,12 +369,13 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     );
   }, []);
 
-  const Item = useCallback(({ section }: { section: IMessageAsSection }) => {
+  const Item = useCallback(({ section }: { section: ChatsAsSection }) => {
     const isChild = useCallback((index: number) => {
       if (index !== 0) {
         if (
-          section.data[index].user._id !== currentUser?.id &&
-          section.data[index - 1].user._id === section.data[index].user._id
+          section.data[index].chat_meta.user._id !== currentUser?.id &&
+          section.data[index - 1].chat_meta.user._id ===
+            section.data[index].chat_meta.user._id
         ) {
           return true;
         }
@@ -354,11 +386,13 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
 
     const showAvatar = useCallback((index: number) => {
       if (index == 0) {
-        if (section.data[index].user._id !== currentUser?.id) return true;
+        if (section.data[index].chat_meta.user._id !== currentUser?.id)
+          return true;
       } else {
         if (
-          section.data[index - 1].user._id !== section.data[index].user._id &&
-          section.data[index].user._id !== currentUser?.id
+          section.data[index - 1].chat_meta.user._id !==
+            section.data[index].chat_meta.user._id &&
+          section.data[index].chat_meta.user._id !== currentUser?.id
         )
           return true;
       }
@@ -369,12 +403,12 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     return (
       <>
         {section.data.length &&
-          section.data.map((message: IMessage, index: number) => (
+          section.data.map((message: Partial<Chat>, index: number) => (
             <WholeMessageContainer
-              key={message._id}
+              key={message.id || (uuid.v4() as string)}
               style={{
                 justifyContent:
-                  message.user._id == currentUser?.id
+                  message.chat_meta.user._id == currentUser?.id
                     ? 'flex-end'
                     : 'flex-start'
               }}
@@ -383,34 +417,34 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
                 <Avatar
                   style={{ marginRight: 10 }}
                   showActive={false}
-                  source={message.user.avatar as string}
+                  source={message.chat_meta.user.avatar as string}
                   size={30}
                 />
               )}
               <Bubble
                 isChild={isChild(index)}
-                isYours={message.user._id == currentUser?.id}
+                isYours={message.chat_meta.user._id == currentUser?.id}
               >
                 <Typography
-                  title={message.text}
+                  title={message.text || ''}
                   size={14}
                   color={
-                    message.user._id == currentUser?.id
+                    message.chat_meta.user._id == currentUser?.id
                       ? Colors.white
                       : Colors.grey
                   }
                 />
                 <TimeContainer>
                   <Typography
-                    title={moment(message.createdAt).format('h:mm A')}
+                    title={moment(message.created_at).format('h:mm A')}
                     size={10}
                     color={
-                      message.user._id != currentUser?.id
+                      message.chat_meta.user._id != currentUser?.id
                         ? Colors.grey
                         : Colors.white
                     }
                   />
-                  {message.user._id == currentUser?.id && (
+                  {message.chat_meta.user._id == currentUser?.id && (
                     <Image
                       style={{ width: 15, height: 15, marginLeft: 5 }}
                       source={DoubleCheckIcon}

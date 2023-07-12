@@ -20,7 +20,7 @@ import useMethodWrapper from '../../libs/useWrapper';
 
 // hooks and context
 import { useGoogleAuth } from './../../libs/useGoogle';
-import { UserContext } from './context/UserContext';
+import { UserContext } from '../../context/user.context';
 
 type HangoutScreenProps = {
   navigation: StackNavigationProp<RootParamList>;

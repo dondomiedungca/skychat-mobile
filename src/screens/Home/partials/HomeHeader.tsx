@@ -7,7 +7,7 @@ import TextInput from '../../../components/TextInput';
 import { Typography } from '../../../components/Typography';
 
 import Colors from '../../../types/Colors';
-import { UserContext } from '../../Auth/context/UserContext';
+import { UserContext } from '../../../context/user.context';
 import { useDrawer } from '../../../libs/rootNavigation';
 
 const FULL_WIDTH = Dimensions.get('screen').width;

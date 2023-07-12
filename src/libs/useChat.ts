@@ -1,5 +1,5 @@
-import { IMessage } from 'react-native-gifted-chat';
 import { HTTPMethod, useApi } from './useApi';
+import { ChatPayload } from '../screens/Home/ChatHome/Room';
 
 export const useFetchChats = () => {
   const { isLoading, data, success, error, makeRequest } = useApi(
@@ -38,16 +38,8 @@ export const useSendChat = () => {
     false
   );
 
-  const fetch = async ({
-    msg,
-    conversation_id,
-    parties
-  }: {
-    conversation_id?: string;
-    msg: IMessage;
-    parties: (string | undefined)[];
-  }) => {
-    return makeRequest?.({ conversation_id, msg, parties });
+  const fetch = async ({ payload, conversation_id, parties }: ChatPayload) => {
+    return makeRequest?.({ conversation_id, payload, parties });
   };
 
   return {

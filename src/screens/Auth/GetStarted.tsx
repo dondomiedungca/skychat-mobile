@@ -15,7 +15,7 @@ import Colors from '../../types/Colors';
 // hooks and refs
 import { navigate } from '../../libs/rootNavigation';
 import { useGoogleAuth } from '../../libs/useGoogle';
-import { UserContext } from './context/UserContext';
+import { UserContext } from '../../context/user.context';
 import { RootParamList } from '../navigation';
 import { useFetchEffect } from '../../libs/useFetchEffect';
 

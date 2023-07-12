@@ -3,7 +3,7 @@ import jwtDecode from 'jwt-decode';
 
 // hooks and context
 import { HTTPMethod, UseApiReturnProps, useApi } from './useApi';
-import { UserContext } from '../screens/Auth/context/UserContext';
+import { UserContext } from '../context/user.context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const useSigninWithGoogle = (): UseApiReturnProps => {

@@ -7,7 +7,7 @@ import jwtDecode from 'jwt-decode';
 
 // hooks and context
 import { useValidateAccessToken } from './useUser';
-import { UserContext } from '../screens/Auth/context/UserContext';
+import { UserContext } from '../context/user.context';
 
 SplashScreen.preventAutoHideAsync();
 SplashScreen.hideAsync();

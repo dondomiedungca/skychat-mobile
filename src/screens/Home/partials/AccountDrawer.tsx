@@ -9,7 +9,7 @@ import styled from 'styled-components/native';
 import { Avatar as ModuleAvatar } from 'react-native-paper';
 
 import Colors from '../../../types/Colors';
-import { UserContext } from '../../Auth/context/UserContext';
+import { UserContext } from '../../../context/user.context';
 import { navigate, replace } from './../../../libs/rootNavigation';
 import { useLogout } from '../../../libs/useUser';
 

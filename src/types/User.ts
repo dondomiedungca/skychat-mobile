@@ -1,4 +1,5 @@
 import { Conversation } from './Conversation';
+import { RecentConversation } from './RecentConversation';
 import { UsersConversations } from './UsersConversations';
 
 export interface Role {
@@ -31,4 +32,5 @@ export interface User {
   user_meta?: UserMeta;
   conversations?: Conversation[];
   users_conversations?: UsersConversations[];
+  recent_conversations?: RecentConversation[];
 }

@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import {
+  DefaultTheme,
   NavigationContainer,
   NavigatorScreenParams
 } from '@react-navigation/native';
@@ -18,7 +19,7 @@ import Room from './Home/ChatHome/Room';
 
 // components
 import { navigationRef } from '../libs/rootNavigation';
-import { UserContext } from './Auth/context/UserContext';
+import { UserContext } from '../context/user.context';
 import AccountDrawer from './Home/partials/AccountDrawer';
 import BottomTabBar from '../components/BottomTabBar';
 
@@ -132,9 +133,16 @@ const ChatRoomNavigator = () => {
 
 const Navigation = () => {
   const { user } = useContext(UserContext);
+  const themeColor = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: 'white'
+    }
+  };
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} theme={themeColor}>
       <AppStack.Navigator
         screenOptions={{ headerShown: false }}
         initialRouteName={!!user && !!user.id ? 'Home' : 'Auth'}

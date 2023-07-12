@@ -3,7 +3,6 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState
 } from 'react';
@@ -24,7 +23,6 @@ import {
 // types and constants
 import Colors from '../../../types/Colors';
 import { navigate, navigationPush } from '../../../libs/rootNavigation';
-import { UsersConversations } from '../../../types/UsersConversations';
 
 // hooks
 import { useGetPaginatedUsers } from '../../../libs/useUser';
@@ -36,11 +34,13 @@ import {
   Dimensions,
   TouchableOpacity,
   RefreshControl,
-  View,
-  Image
+  View
 } from 'react-native';
-import { UserContext } from '../../Auth/context/UserContext';
+import { UserContext } from '../../../context/user.context';
 import EmptyState from './../../../../assets/png/empty_state.jpg';
+import { RecentConversationsContext } from '../../../context/recent-conversation.context';
+import { RecentConversation } from '../../../types/RecentConversation';
+import { ReelsUsersContext } from '../../../context/reels-of-users.context';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
@@ -51,11 +51,6 @@ enum Filters {
   PERSONAL = 'personal',
   WORK = 'work',
   GROUPS = 'groups'
-}
-
-interface RecentConversation {
-  user_conversation: UsersConversations;
-  numberOfUnread: number;
 }
 
 const Card = ({ user }: { user: User }) => {
@@ -125,11 +120,12 @@ const ConnectSectionComponent = memo(({ users }: { users: any }) => {
 
 export const ChatHome = () => {
   const { user: currentUser } = useContext(UserContext);
+  const { users: reelsUsers, setUsers: setUsersReels } =
+    useContext(ReelsUsersContext);
+  const { recent_conversations, setRecentConversations } = useContext(
+    RecentConversationsContext
+  );
   const [refreshing, setRefreshing] = useState(false);
-  const [users, setUsers] = useState<User[][]>([]);
-  const [recentConversations, setRecentConversations] = useState<
-    RecentConversation[]
-  >([]);
   const [activefilter, setActiveFilter] = useState<Filters>(Filters.ALL_CHATS);
 
   const { makeRequest: fetchUsers, ...handleFetchUsers } =
@@ -146,7 +142,7 @@ export const ChatHome = () => {
     onData: (data: User[]) => {
       if (!!data && !handleFetchUsers.isLoading) {
         const chunked = _.chunk(data, 2);
-        setUsers(chunked);
+        setUsersReels(chunked);
         setRefreshing(false);
       }
     },
@@ -154,7 +150,7 @@ export const ChatHome = () => {
   });
 
   useFetchEffect(handleRecentConversations, {
-    onData: (data: any) => {
+    onData: (data: RecentConversation[]) => {
       setRecentConversations(data);
     }
   });
@@ -189,7 +185,7 @@ export const ChatHome = () => {
             />
           }
         >
-          <ConnectSectionComponent users={users} />
+          <ConnectSectionComponent users={reelsUsers} />
         </Container>
       </View>
       <RecentContainer>
@@ -281,10 +277,10 @@ export const ChatHome = () => {
             </Filter>
           </TouchableOpacity>
         </GroupFilters>
-        {recentConversations.length ? (
+        {recent_conversations?.length ? (
           <RecentList
             showsVerticalScrollIndicator={false}
-            data={recentConversations}
+            data={recent_conversations}
             keyExtractor={(item: any, index) => item.users_conversations_id}
             renderItem={({ item }: ListRenderItemInfo<any>) => {
               return (
