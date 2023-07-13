@@ -19,7 +19,7 @@ export const ListPeople = () => {
 
 export const Account = () => {
   return (
-    <MainContainer header={<HomeHeader />}>
+    <MainContainer header={<HomeHeader onPressSearch={() => {}} />}>
       <Container>
         <ConnectSection>
           <Typography

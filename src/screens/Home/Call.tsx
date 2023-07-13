@@ -19,7 +19,7 @@ export const ListPeople = () => {
 
 export const Call = () => {
   return (
-    <MainContainer header={<HomeHeader />}>
+    <MainContainer header={<HomeHeader onPressSearch={() => {}} />}>
       <Container>
         <ConnectSection>
           <Typography
