@@ -148,8 +148,11 @@ const Composer = ({
 const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   const user = route?.params?.user;
   const { user: currentUser } = useContext(UserContext);
-  const { users: usersReels, setUsers: setUsersReels } =
-    useContext(ReelsUsersContext);
+  const {
+    users: usersReels,
+    setUsers: setUsersReels,
+    socket: usersReelsSocket
+  } = useContext(ReelsUsersContext);
   const {
     recent_conversations,
     setRecentConversations,
@@ -180,7 +183,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
      * * if conversation was changed from temporary to entity, update the socket connection for passing the hash as room
      */
 
-    return io(`${BASE_URL}`, {
+    return io(`${BASE_URL}/chats`, {
       query: {
         conversation_id: conversation_id || getTemporaryConversationId
       }
@@ -322,7 +325,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
             users_conversations: [data.targetUserJunction]
           };
           setUsersReels(copy);
-          socket.emit('user-updatePartnerReels', {
+          usersReelsSocket.emit('user-updatePartnerReels', {
             fromUser: currentUser,
             targetUser,
             data
