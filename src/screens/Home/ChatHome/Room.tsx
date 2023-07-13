@@ -42,6 +42,7 @@ import _ from 'lodash';
 import { ReelsUsersContext } from '../../../context/reels-of-users.context';
 import { User } from '../../../types/User';
 import { UsersConversations } from '../../../types/UsersConversations';
+import { RecentConversationsContext } from '../../../context/recent-conversation.context';
 
 const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
 
@@ -75,7 +76,7 @@ const Composer = ({
   useLayoutEffect(() => {
     const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
       setHide(false);
-      socket.emit('onUserKeyUp', false);
+      socket.emit('chat-onUserKeyUp', false);
       textInputRef.current?.blur();
     });
 
@@ -92,7 +93,7 @@ const Composer = ({
             setHide(true);
           }}
           onChange={() => {
-            socket.emit('onUserKeyUp', true);
+            socket.emit('chat-onUserKeyUp', true);
           }}
           ref={textInputRef}
           value={chat}
@@ -130,7 +131,7 @@ const Composer = ({
       <SendTouchableOpacity
         disabled={!chat}
         onPress={() => {
-          socket.emit('onUserKeyUp', false);
+          socket.emit('chat-onUserKeyUp', false);
           handleSend(chat);
           setChat(undefined);
         }}
@@ -147,8 +148,13 @@ const Composer = ({
 const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   const user = route?.params?.user;
   const { user: currentUser } = useContext(UserContext);
-  const { users: reelsUsers, setUsers: setUsersReels } =
+  const { users: usersReels, setUsers: setUsersReels } =
     useContext(ReelsUsersContext);
+  const {
+    recent_conversations,
+    setRecentConversations,
+    socket: recentSocket
+  } = useContext(RecentConversationsContext);
   const { makeRequest: fetchChats, ...handleFetchChats } = useFetchChats();
   const { makeRequest: sendChat, ...handleSendChat } = useSendChat();
   const [conversation_id, setConversationId] = useState<string | undefined>(
@@ -169,15 +175,17 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   }, [currentUser, user]);
 
   const socket = useMemo(() => {
-    // listen for newly created conversation entity, this is useful for joining room
-    // if conversation was changed from temporary to entity, update the socket connection for passing the hash as room
+    /**
+     * * Listen for newly created conversation entity, this is useful for joining room
+     * * if conversation was changed from temporary to entity, update the socket connection for passing the hash as room
+     */
 
-    return io(`${BASE_URL}/chats`, {
+    return io(`${BASE_URL}`, {
       query: {
         conversation_id: conversation_id || getTemporaryConversationId
       }
     });
-  }, [conversation_id]);
+  }, [conversation_id, getTemporaryConversationId]);
 
   const isGatheredAllData = useMemo(() => {
     return (
@@ -215,7 +223,9 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
       });
     }
 
-    socket.on('onNewConversationId', (payload) => setConversationId(payload));
+    socket.on('chat-onNewConversationId', (payload) =>
+      setConversationId(payload)
+    );
 
     return () => {
       socket.disconnect();
@@ -223,14 +233,14 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   }, []);
 
   useLayoutEffect(() => {
-    socket.on('receiveChat', (payload) => {
+    socket.on('chat-receiveChat', (payload) => {
       updateMessages(payload);
     });
-    socket.on('onUserKeyUp', (payload) => setTyping(payload));
+    socket.on('chat-onUserKeyUp', (payload) => setTyping(payload));
 
     return () => {
-      socket.off('receiveChat');
-      socket.off('onUserKeyUp');
+      socket.off('chat-receiveChat');
+      socket.off('chat-onUserKeyUp');
     };
   }, [messages, socket, conversation_id]);
 
@@ -286,32 +296,42 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   });
 
   useFetchEffect(handleSendChat, {
-    onData: (data: UsersConversations) => {
-      if (conversation_id !== data.conversation.id) {
+    onData: (data: {
+      targetUserJunction: UsersConversations;
+      currentUserJunction: UsersConversations;
+    }) => {
+      if (conversation_id !== data.targetUserJunction.conversation.id) {
         let targetUser: User | undefined = undefined;
         let firstIndex: number = 0;
         let secondIndex: number = 0;
 
-        for (let index = 0; index < reelsUsers!.length; index++) {
-          const element = reelsUsers![index];
+        for (let index = 0; index < usersReels!.length; index++) {
+          const element = usersReels![index];
           firstIndex = index;
           secondIndex = element.findIndex((u) => u.id == user.id);
           if (secondIndex !== -1) {
-            targetUser = reelsUsers![firstIndex][secondIndex];
+            targetUser = usersReels![firstIndex][secondIndex];
             break;
           }
         }
 
         if (!!targetUser) {
-          const copy = [...reelsUsers!];
+          const copy = [...usersReels!];
           copy[firstIndex][secondIndex] = {
             ...copy[firstIndex][secondIndex],
-            users_conversations: [data]
+            users_conversations: [data.targetUserJunction]
           };
           setUsersReels(copy);
+          socket.emit('user-updatePartnerReels', {
+            fromUser: currentUser,
+            targetUser,
+            data
+          });
+          socket.emit(
+            'chat-onNewConversationId',
+            data.targetUserJunction.conversation.id
+          );
         }
-
-        socket.emit('onNewConversationId', data.conversation.id);
       }
     }
   });
@@ -332,7 +352,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
           created_at: new Date()
         }
       };
-      socket.emit('sendChat', {
+      socket.emit('chat-sendChat', {
         data,
         conversation_id: conversation_id || getTemporaryConversationId
       });

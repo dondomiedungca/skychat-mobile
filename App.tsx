@@ -1,5 +1,4 @@
 import React from 'react';
-import styled from 'styled-components/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { AppRegistry } from 'react-native';
@@ -32,13 +31,13 @@ const App = () => {
 
 export default function Main() {
   return (
-    <ReelsUsersContextComponent>
-      <UserContextComponent>
+    <UserContextComponent>
+      <ReelsUsersContextComponent>
         <RecentConversationContextComponent>
           <App />
         </RecentConversationContextComponent>
-      </UserContextComponent>
-    </ReelsUsersContextComponent>
+      </ReelsUsersContextComponent>
+    </UserContextComponent>
   );
 }
 
