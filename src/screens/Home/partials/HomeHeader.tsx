@@ -1,32 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components/native';
-import { Dimensions, TouchableOpacity } from 'react-native';
-import { Avatar as ModuleAvatar } from 'react-native-paper';
+import { Dimensions } from 'react-native';
 
 import TextInput from '../../../components/TextInput';
 import { Typography } from '../../../components/Typography';
 
 import Colors from '../../../types/Colors';
-import { UserContext } from '../../../context/user.context';
-import { useDrawer } from '../../../libs/rootNavigation';
 
 const FULL_WIDTH = Dimensions.get('screen').width;
-
-export const Avatar = () => {
-  const { user } = useContext(UserContext);
-  const drawer = useDrawer();
-
-  return !!user?.user_meta ? (
-    <TouchableOpacity onPress={() => drawer.openDrawer()}>
-      <ModuleAvatar.Image
-        size={35}
-        source={{ uri: user.user_meta?.profile_photo }}
-      />
-    </TouchableOpacity>
-  ) : (
-    <ModuleAvatar.Text size={35} label="XD" />
-  );
-};
 
 export const HomeHeader = ({
   onPressSearch
@@ -54,7 +35,6 @@ export const HomeHeader = ({
         onChange={setSearch}
         onPress={onPressSearch}
       />
-      <Avatar />
     </StyledContainer>
   );
 };

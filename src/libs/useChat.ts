@@ -50,3 +50,29 @@ export const useSendChat = () => {
     makeRequest: fetch
   };
 };
+
+export const useUpdateUnread = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.PUT,
+    '/chat/update-unread',
+    false
+  );
+
+  const fetch = async ({
+    user_id,
+    conversation_id
+  }: {
+    user_id: string;
+    conversation_id: string;
+  }) => {
+    return makeRequest?.({ conversation_id, user_id });
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};

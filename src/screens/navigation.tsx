@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 import {
   DefaultTheme,
   NavigationContainer,
@@ -6,7 +6,6 @@ import {
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { TransitionPresets } from '@react-navigation/stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // screens
@@ -15,33 +14,31 @@ import { ChatHome } from './Home';
 import { Recent } from './Home/Recent';
 import { Call } from './Home/Call';
 import { Account } from './Home/Account';
-import Room from './Home/ChatHome/Room';
+import ChatRoom from './Home/ChatHome/Room';
 
 // components
 import { navigationRef } from '../libs/rootNavigation';
 import { UserContext } from '../context/user.context';
-import AccountDrawer from './Home/partials/AccountDrawer';
-import BottomTabBar from '../components/BottomTabBar';
 
 // types, constants and utils
 import { User } from '../types/User';
-import RoomHeader from '../components/RoomHeader';
-import ChatRoom from './Home/ChatHome/Room';
+import {
+  FontAwesome5,
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons
+} from '@expo/vector-icons';
+import Colors from '../types/Colors';
 
 export type RootParamList = AppStackParamList &
   AuthStackParamList &
   HomeStackTabParamList &
-  DrawerStackParamList &
-  ChatRoomStackParamList;
+  ChatStackParamList;
 
 export type AppStackParamList = {
-  Home: NavigatorScreenParams<HomeStackTabParamList>;
+  Main: NavigatorScreenParams<HomeStackTabParamList>;
   Auth: NavigatorScreenParams<AuthStackParamList>;
-  ChatRoom: NavigatorScreenParams<ChatRoomStackParamList>;
-};
-
-export type DrawerStackParamList = {
-  Account: undefined;
+  Chat: NavigatorScreenParams<ChatStackParamList>;
 };
 
 export type AuthStackParamList = {
@@ -52,14 +49,15 @@ export type AuthStackParamList = {
   };
 };
 
-export type ChatRoomStackParamList = {
+export type ChatStackParamList = {
+  ChatHome: undefined;
   Room: {
     user: User;
   };
 };
 
 export type HomeStackTabParamList = {
-  ChatHome: NavigatorScreenParams<DrawerStackParamList>;
+  Home: undefined;
   Recent: undefined;
   Call: undefined;
   Account: undefined;
@@ -67,41 +65,106 @@ export type HomeStackTabParamList = {
 
 const AppStack = createStackNavigator<AppStackParamList>();
 const AuthStack = createStackNavigator<AuthStackParamList>();
-const HomeStackTab = createBottomTabNavigator<HomeStackTabParamList>();
-const ChatRoomstack = createStackNavigator<ChatRoomStackParamList>();
-const Drawer = createDrawerNavigator<DrawerStackParamList>();
+const ChatStack = createStackNavigator<ChatStackParamList>();
+const StackTab = createBottomTabNavigator<HomeStackTabParamList>();
 
 const TransitionScreenOptions = {
   ...TransitionPresets.SlideFromRightIOS
 };
 
-const ChatHomeDrawerNavigator = () => {
+const TabNavigators = () => {
   return (
-    <Drawer.Navigator defaultStatus="closed" drawerContent={AccountDrawer}>
-      <Drawer.Screen
-        options={{ headerShown: false, swipeEnabled: false }}
-        name="Account"
-        component={ChatHome}
+    <StackTab.Navigator
+      initialRouteName="Home"
+      screenOptions={{ headerShown: false, tabBarShowLabel: false }}
+    >
+      <StackTab.Screen
+        name="Home"
+        component={ChatNavigator}
+        options={(_) => ({
+          tabBarStyle: (() => {
+            if (
+              navigationRef.isReady() &&
+              navigationRef.getCurrentRoute()?.name === 'Room'
+            ) {
+              return { display: 'none' };
+            }
+            return {};
+          })(),
+          tabBarIcon: useCallback(
+            (params: any) => (
+              <Ionicons
+                name="chatbubbles"
+                size={24}
+                color={params.focused ? Colors.blue : Colors.grey_light}
+              />
+            ),
+            []
+          )
+        })}
       />
-    </Drawer.Navigator>
+      <StackTab.Screen
+        name="Recent"
+        component={Recent}
+        options={{
+          tabBarIcon: useCallback(
+            (params: any) => (
+              <FontAwesome5
+                name="history"
+                size={21}
+                color={params.focused ? Colors.blue : Colors.grey_light}
+              />
+            ),
+            []
+          )
+        }}
+      />
+      <StackTab.Screen
+        name="Call"
+        component={Call}
+        options={{
+          tabBarIcon: useCallback(
+            (params: any) => (
+              <MaterialIcons
+                name="video-call"
+                size={29}
+                color={params.focused ? Colors.blue : Colors.grey_light}
+              />
+            ),
+            []
+          )
+        }}
+      />
+      <StackTab.Screen
+        name="Account"
+        component={Account}
+        options={{
+          tabBarIcon: useCallback(
+            (params: any) => (
+              <MaterialCommunityIcons
+                name="account-box"
+                size={24}
+                color={params.focused ? Colors.blue : Colors.grey_light}
+              />
+            ),
+            []
+          )
+        }}
+      />
+    </StackTab.Navigator>
   );
 };
 
-const TabNavigators = () => {
+const ChatNavigator = () => {
   return (
-    <HomeStackTab.Navigator
-      tabBar={(props: any) => <BottomTabBar {...props} />}
-      initialRouteName="ChatHome"
-      screenOptions={{ headerShown: false }}
-    >
-      <HomeStackTab.Screen
-        name="ChatHome"
-        component={ChatHomeDrawerNavigator}
-      />
-      <HomeStackTab.Screen name="Recent" component={Recent} />
-      <HomeStackTab.Screen name="Call" component={Call} />
-      <HomeStackTab.Screen name="Account" component={Account} />
-    </HomeStackTab.Navigator>
+    <ChatStack.Navigator>
+      <ChatStack.Group
+        screenOptions={{ headerShown: false, ...TransitionScreenOptions }}
+      >
+        <ChatStack.Screen name="ChatHome" component={ChatHome} />
+        <ChatStack.Screen name="Room" component={ChatRoom} />
+      </ChatStack.Group>
+    </ChatStack.Navigator>
   );
 };
 
@@ -119,18 +182,6 @@ const AuthNavigator = () => {
   );
 };
 
-const ChatRoomNavigator = () => {
-  return (
-    <ChatRoomstack.Navigator>
-      <ChatRoomstack.Group
-        screenOptions={{ headerShown: false, ...TransitionScreenOptions }}
-      >
-        <ChatRoomstack.Screen name="Room" component={Room} />
-      </ChatRoomstack.Group>
-    </ChatRoomstack.Navigator>
-  );
-};
-
 const Navigation = () => {
   const { user } = useContext(UserContext);
   const themeColor = {
@@ -145,11 +196,11 @@ const Navigation = () => {
     <NavigationContainer ref={navigationRef} theme={themeColor}>
       <AppStack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName={!!user && !!user.id ? 'Home' : 'Auth'}
+        initialRouteName={!!user && !!user.id ? 'Main' : 'Auth'}
       >
         <AppStack.Screen name="Auth" component={AuthNavigator} />
-        <AppStack.Screen name="Home" component={TabNavigators} />
-        <AppStack.Screen name="ChatRoom" component={ChatRoomNavigator} />
+        <AppStack.Screen name="Main" component={TabNavigators} />
+        <AppStack.Screen name="Chat" component={ChatNavigator} />
       </AppStack.Navigator>
     </NavigationContainer>
   );

@@ -41,6 +41,7 @@ import EmptyState from './../../../../assets/png/empty_state.jpg';
 import { RecentConversationsContext } from '../../../context/recent-conversation.context';
 import { RecentConversation } from '../../../types/RecentConversation';
 import { ReelsUsersContext } from '../../../context/reels-of-users.context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
@@ -57,21 +58,19 @@ const Card = ({ user }: { user: User }) => {
   return (
     <TouchableOpacity
       delayPressIn={50}
-      onPress={() =>
-        navigationPush('ChatRoom', { screen: 'Room', params: { user } })
-      }
+      onPress={() => navigationPush('Room', { user })}
     >
       <StyledCard>
         <CardMainInfo>
           <Avatar
             size={30}
             source={user.user_meta?.profile_photo}
-            showActive={user?.user_meta?.activity?.showActivity}
-            active={user?.user_meta?.activity?.isActive}
+            showActive={user?.user_meta?.activity?.show_activity}
+            active={user?.user_meta?.activity?.is_active}
           />
           <Typography
             style={{ width: WIDTH / 2 - 80 }}
-            title={`${user.firstName} ${user.lastName}`}
+            title={`${user.first_name} ${user.last_name}`}
             size={14}
             fontFamily="Roboto-Medium"
             color={Colors.grey}
@@ -150,27 +149,91 @@ export const ChatHome = () => {
   });
 
   useFetchEffect(handleRecentConversations, {
-    onData: (data: RecentConversation[]) => {
-      setRecentConversations(data);
+    onData: async (data: RecentConversation[]) => {
+      const sorted = data.sort(function (a, b) {
+        return (
+          new Date(b.lastDateTime).getTime() -
+          new Date(a.lastDateTime).getTime()
+        );
+      });
+
+      setRecentConversations(sorted);
     }
   });
 
   const ref = useRef<BottomSheetRefProps>(null);
 
   const onPressSearch = useCallback(() => {
-    const isActive = ref?.current?.isActive();
-    if (isActive) {
+    const is_active = ref?.current?.is_active();
+    if (is_active) {
       ref?.current?.scrollTo(0);
     } else {
       ref?.current?.scrollTo(-HEIGHT);
     }
   }, []);
 
+  const goToRoom = useCallback(
+    (item: any) => {
+      let user: any;
+      if (item.hasOwnProperty('users_conversations_conversation_id')) {
+        user = JSON.parse(
+          JSON.stringify({
+            id: item.user_id,
+            first_name: item.user_first_name,
+            last_name: item.user_last_name,
+            email: item.user_email,
+            created_at: new Date(item.user_created_at),
+            updated_at: new Date(item.user_updated_at),
+            verified_at: new Date(item.user_verified_at),
+            is_deleted: item.user_is_deleted,
+            deleted_at: item.user_deleted_at && new Date(item.user_deleted_at),
+            initial_chats: item.initial_chats,
+            user_meta: {
+              activity: {
+                is_active: item.user_user_meta.activity.is_active,
+                last_active: new Date(item.user_user_meta.activity.last_active),
+                show_activity: item.user_user_meta.activity.show_activity
+              },
+              google_id: item?.user_user_meta?.google_id,
+              profile_photo: item?.user_user_meta?.profile_photo
+            },
+            users_conversations: [
+              {
+                conversation: {
+                  id: item.conversation_id,
+
+                  type: item.conversation_type,
+
+                  conversation_meta:
+                    item?.conversation_conversation_meta || null,
+
+                  created_at: new Date(item.conversation_created_at),
+
+                  updated_at: new Date(item.conversation_updated_at)
+                },
+                id: item.users_conversations_id,
+                display_name: item.users_conversations_display_name,
+                user: {} as User,
+                related_to: {} as User,
+                deleted_at: new Date()
+              }
+            ]
+          })
+        );
+      } else {
+        user = {
+          ...item.user_partner,
+          users_conversations: item.users_conversations
+        };
+      }
+
+      navigationPush('Room', { user });
+    },
+    [reelsUsers]
+  );
+
   return (
-    <MainContainer
-      withBottomTabSpace
-      header={<HomeHeader onPressSearch={onPressSearch} />}
-    >
+    <MainContainer header={<HomeHeader onPressSearch={onPressSearch} />}>
       <View>
         <Container
           refreshControl={
@@ -181,6 +244,7 @@ export const ChatHome = () => {
               onRefresh={() => {
                 setRefreshing(true);
                 fetchUsers({ page: 1 });
+                fetchRecentConversation({ page: 1 });
               }}
             />
           }
@@ -281,10 +345,13 @@ export const ChatHome = () => {
           <RecentList
             showsVerticalScrollIndicator={false}
             data={recent_conversations}
-            keyExtractor={(item: any, index) => item.users_conversations_id}
+            keyExtractor={(item: any, index) => item.conversation_id}
             renderItem={({ item }: ListRenderItemInfo<any>) => {
               return (
-                <TouchableOpacity delayPressIn={50}>
+                <TouchableOpacity
+                  onPress={() => goToRoom(item)}
+                  delayPressIn={50}
+                >
                   <MessageContainer>
                     <Avatar
                       source={item.user_user_meta.profile_photo}
@@ -417,7 +484,6 @@ const MessageContainer = styled.View`
   padding: 7px 7px 7px 0;
   gap: 10px;
   min-height: 60px;
-  margin-bottom: 10px;
 `;
 
 const MessageTextContainer = styled.View`

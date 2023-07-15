@@ -6,6 +6,7 @@ import { UsersConversations } from '../types/UsersConversations';
 import { UserContext } from './user.context';
 
 export type ReelsUsersContextType = {
+  socket?: any;
   users?: User[][];
   setUsers: React.Dispatch<React.SetStateAction<User[][]>>;
 };
@@ -37,10 +38,11 @@ const ReelsUsersContextComponent: React.FC<Props> = ({ children }) => {
    * * your recent conversations
    */
   const socket = useMemo(() => {
-    return io(`${BASE_URL}`, {
+    return io(`${BASE_URL}/users`, {
       query: {
         user_id: currentUser?.id || undefined
-      }
+      },
+      forceNew: true
     });
   }, [currentUser]);
 
@@ -85,7 +87,7 @@ const ReelsUsersContextComponent: React.FC<Props> = ({ children }) => {
   }, [socket, users]);
 
   return (
-    <ReelsUsersContext.Provider value={{ users, setUsers }}>
+    <ReelsUsersContext.Provider value={{ users, setUsers, socket }}>
       {children}
     </ReelsUsersContext.Provider>
   );

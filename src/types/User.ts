@@ -8,9 +8,9 @@ export interface Role {
 }
 
 interface UserActivity {
-  showActivity?: boolean;
-  isActive?: boolean;
-  lastActive?: Date;
+  show_activity?: boolean;
+  is_active?: boolean;
+  last_active?: Date;
 }
 interface UserMeta {
   google_id?: string;
@@ -20,8 +20,8 @@ interface UserMeta {
 
 export interface User {
   id: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
   created_at?: Date;
   updated_at?: Date;

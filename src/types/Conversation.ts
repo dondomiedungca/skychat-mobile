@@ -6,8 +6,6 @@ export interface Conversation {
 
   type: string;
 
-  hash: string;
-
   conversation_meta: string | null;
 
   users?: User[];

@@ -33,22 +33,22 @@ const RoomHeader = ({
       <Avatar
         size={40}
         source={user.user_meta?.profile_photo}
-        showActive={user?.user_meta?.activity?.showActivity}
-        active={user?.user_meta?.activity?.isActive}
+        showActive={user?.user_meta?.activity?.show_activity}
+        active={user?.user_meta?.activity?.is_active}
       />
       <NameAndActivity>
         <Typography
-          title={`${user?.firstName} ${user?.lastName}`}
+          title={`${user?.first_name} ${user?.last_name}`}
           size={15}
           color={Colors.grey}
           fontFamily="Roboto-Medium"
         ></Typography>
-        {user?.user_meta?.activity?.showActivity && (
+        {user?.user_meta?.activity?.show_activity && (
           <Typography
             title={
-              user?.user_meta?.activity?.isActive
+              user?.user_meta?.activity?.is_active
                 ? 'online'
-                : handleFormat(user?.user_meta?.activity?.lastActive) ||
+                : handleFormat(user?.user_meta?.activity?.last_active) ||
                   'OFFLINE'
             }
             size={10}

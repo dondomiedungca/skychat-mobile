@@ -37,8 +37,8 @@ export const useCacheApp = () => {
       ) {
         setUser({
           id: response?.id,
-          firstName: response?.firstName,
-          lastName: response?.lastName,
+          first_name: response?.first_name,
+          last_name: response?.last_name,
           email: response?.email,
           roles: response?.roles,
           user_meta: response?.user_meta,

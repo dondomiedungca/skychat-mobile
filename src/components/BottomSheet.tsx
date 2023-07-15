@@ -21,7 +21,7 @@ type BottomSheetProps = {
 
 export type BottomSheetRefProps = {
   scrollTo: (destination: number) => void;
-  isActive: () => boolean;
+  is_active: () => boolean;
 };
 
 export const BottomSheetView = React.forwardRef<
@@ -38,13 +38,13 @@ export const BottomSheetView = React.forwardRef<
     translateY.value = withSpring(destination, { damping: 50 });
   }, []);
 
-  const isActive = useCallback(() => {
+  const is_active = useCallback(() => {
     return active.value;
   }, []);
 
-  useImperativeHandle(ref, () => ({ scrollTo, isActive }), [
+  useImperativeHandle(ref, () => ({ scrollTo, is_active }), [
     scrollTo,
-    isActive
+    is_active
   ]);
 
   const context = useSharedValue({ y: 0 });

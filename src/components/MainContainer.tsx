@@ -1,5 +1,11 @@
 import React from 'react';
-import { Keyboard, Dimensions, StatusBar } from 'react-native';
+import {
+  Keyboard,
+  Dimensions,
+  StatusBar,
+  ViewStyle,
+  StyleProp
+} from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styled from 'styled-components/native';
@@ -13,6 +19,7 @@ interface Props {
   isLoading?: boolean;
   disableTouchableFeedback?: boolean;
   withBottomTabSpace?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
 const FULL_WIDTH = Dimensions.get('screen').width;
@@ -24,7 +31,8 @@ const MainContainer: React.FC<Props> = ({
   isLoading = false,
   hiddenStatusBar = false,
   disableTouchableFeedback = false,
-  withBottomTabSpace = false
+  withBottomTabSpace = false,
+  style
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -35,7 +43,10 @@ const MainContainer: React.FC<Props> = ({
           onPress={() => Keyboard.dismiss()}
           accessible={false}
         >
-          <StyledContainer withBottomTabSpace={withBottomTabSpace}>
+          <StyledContainer
+            withBottomTabSpace={withBottomTabSpace}
+            style={style}
+          >
             <StatusBar
               barStyle={'dark-content'}
               backgroundColor={isLoading ? 'rgba(0,0,0,0.7)' : 'white'}
@@ -47,7 +58,7 @@ const MainContainer: React.FC<Props> = ({
         </TouchableWithoutFeedback>
       )}
       {disableTouchableFeedback && (
-        <StyledContainer withBottomTabSpace={withBottomTabSpace}>
+        <StyledContainer withBottomTabSpace={withBottomTabSpace} style={style}>
           <StatusBar
             barStyle={'dark-content'}
             backgroundColor={isLoading ? 'rgba(0,0,0,0.7)' : 'white'}
@@ -70,7 +81,10 @@ const HeaderStyled = styled.View`
   left: 0;
 `;
 
-const StyledContainer = styled.View<{ withBottomTabSpace?: boolean }>`
+const StyledContainer = styled.View<{
+  withBottomTabSpace?: boolean;
+  style?: any;
+}>`
   width: ${FULL_WIDTH}px;
   height: 100%;
   background: ${Colors.white};

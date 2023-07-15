@@ -31,8 +31,8 @@ export const useSigninWithGoogle = (): UseApiReturnProps => {
         const decoded: any = await jwtDecode(data.accessToken);
         setUser({
           id: decoded.sub,
-          firstName: decoded.firstName,
-          lastName: decoded.lastName,
+          first_name: decoded.first_name,
+          last_name: decoded.last_name,
           email: decoded.email,
           roles: decoded.roles,
           user_meta: decoded?.user_meta,

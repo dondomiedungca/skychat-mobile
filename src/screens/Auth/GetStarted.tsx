@@ -40,10 +40,7 @@ export const GetStarted: React.FC<HangoutScreenProps> = ({ navigation }) => {
   useFetchEffect(handleGoogleAuth, {
     onData: (data) => {
       if (!!data && !handleGoogleAuth.isLoading && !!user) {
-        navigation.replace('Home', {
-          screen: 'ChatHome',
-          params: { screen: 'Account' }
-        });
+        navigation.replace('Main', { screen: 'Home' });
       }
     },
     dependencies: [user]

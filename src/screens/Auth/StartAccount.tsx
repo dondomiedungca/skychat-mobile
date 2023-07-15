@@ -42,10 +42,7 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
 
   useEffect(() => {
     if (!!user && user?.id) {
-      navigation.replace('Home', {
-        screen: 'ChatHome',
-        params: { screen: 'Account' }
-      });
+      navigation.replace('Main', { screen: 'Home' });
     }
   }, [user]);
 

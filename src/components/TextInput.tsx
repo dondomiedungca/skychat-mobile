@@ -32,14 +32,14 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   editable = true,
   ...rest
 }) => {
-  const [isActive, setActive] = useState<boolean>(false);
+  const [is_active, setActive] = useState<boolean>(false);
 
   return (
     <Container style={style} width={width} height={height}>
       <StyledTextInput
-        onFocus={() => setActive(!isActive)}
-        onBlur={() => setActive(!isActive)}
-        active={isActive}
+        onFocus={() => setActive(!is_active)}
+        onBlur={() => setActive(!is_active)}
+        active={is_active}
         color={color}
         placeholder={label}
         width={width}

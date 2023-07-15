@@ -19,7 +19,7 @@ import uuid from 'react-native-uuid';
 import MainContainer from '../../../components/MainContainer';
 import RoomHeader from '../../../components/RoomHeader';
 import Colors from '../../../types/Colors';
-import { ChatRoomStackParamList, RootParamList } from '../../navigation';
+import { ChatStackParamList, RootParamList } from '../../navigation';
 
 import { UserContext } from '../../../context/user.context';
 import { useFetchEffect } from '../../../libs/useFetchEffect';
@@ -48,7 +48,7 @@ const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
 
 type RoomScreenProps = {
   navigation: StackNavigationProp<RootParamList>;
-  route: RouteProp<ChatRoomStackParamList, 'Room'>;
+  route: RouteProp<ChatStackParamList, 'Room'>;
 };
 
 interface ChatsAsSection {
@@ -148,16 +148,20 @@ const Composer = ({
 const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   const user = route?.params?.user;
   const { user: currentUser } = useContext(UserContext);
-  const { users: usersReels, setUsers: setUsersReels } =
-    useContext(ReelsUsersContext);
   const {
-    recent_conversations,
-    setRecentConversations,
-    socket: recentSocket
-  } = useContext(RecentConversationsContext);
+    users: usersReels,
+    setUsers: setUsersReels,
+    socket: usersReelsSocket
+  } = useContext(ReelsUsersContext);
+  const { socket: recentSocket, updateUnreadOnRoomOpening } = useContext(
+    RecentConversationsContext
+  );
   const { makeRequest: fetchChats, ...handleFetchChats } = useFetchChats();
   const { makeRequest: sendChat, ...handleSendChat } = useSendChat();
   const [conversation_id, setConversationId] = useState<string | undefined>(
+    user?.users_conversations?.[0]?.conversation?.id
+  );
+  const [conversation_type] = useState<string | undefined>(
     user?.users_conversations?.[0]?.conversation?.id
   );
   const [messages, setMessages] = useState<ChatsAsSection[]>([]);
@@ -180,10 +184,11 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
      * * if conversation was changed from temporary to entity, update the socket connection for passing the hash as room
      */
 
-    return io(`${BASE_URL}`, {
+    return io(`${BASE_URL}/chats`, {
       query: {
         conversation_id: conversation_id || getTemporaryConversationId
-      }
+      },
+      forceNew: true
     });
   }, [conversation_id, getTemporaryConversationId]);
 
@@ -256,6 +261,12 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     }
   }, [loadMore, conversation_id]);
 
+  useEffect(() => {
+    if (!!user && !!conversation_id) {
+      updateUnreadOnRoomOpening?.(user, conversation_id);
+    }
+  }, [user, conversation_id]);
+
   useFetchEffect(handleFetchChats, {
     onData: (data: { allchat: number; chats: Chat[] }) => {
       setAllChats(data.allchat);
@@ -299,6 +310,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     onData: (data: {
       targetUserJunction: UsersConversations;
       currentUserJunction: UsersConversations;
+      chat: Chat;
     }) => {
       if (conversation_id !== data.targetUserJunction.conversation.id) {
         let targetUser: User | undefined = undefined;
@@ -322,11 +334,31 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
             users_conversations: [data.targetUserJunction]
           };
           setUsersReels(copy);
-          socket.emit('user-updatePartnerReels', {
+          usersReelsSocket.emit('user-updatePartnerReels', {
             fromUser: currentUser,
             targetUser,
             data
           });
+          /**
+           * * This is to update both parties recent conversations
+           */
+          recentSocket.emit('user-updateOwnRecents', {
+            relatedUser: user,
+            channelUserId: currentUser?.id,
+            chat: data.chat,
+            conversation_id: data.targetUserJunction.conversation.id,
+            conversation_type: data.targetUserJunction.conversation.type,
+            users_conversations: data.currentUserJunction
+          });
+          recentSocket.emit('user-updatePartnerRecents', {
+            relatedUser: currentUser,
+            channelUserId: user?.id,
+            chat: data.chat,
+            conversation_id: data.targetUserJunction.conversation.id,
+            conversation_type: data.targetUserJunction.conversation.type,
+            users_conversations: data.targetUserJunction
+          });
+
           socket.emit(
             'chat-onNewConversationId',
             data.targetUserJunction.conversation.id
@@ -338,27 +370,48 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
 
   const handleSend = useCallback(
     (chat: string | undefined) => {
+      const chatEntity = {
+        text: chat!,
+        chat_meta: {
+          user: {
+            _id: currentUser?.id!,
+            avatar: currentUser?.user_meta?.profile_photo
+          }
+        },
+        created_at: new Date()
+      };
+
       const data: ChatPayload = {
         conversation_id: conversation_id,
         parties: [user.id, currentUser?.id].filter(Boolean),
-        payload: {
-          text: chat!,
-          chat_meta: {
-            user: {
-              _id: currentUser?.id!,
-              avatar: currentUser?.user_meta?.profile_photo
-            }
-          },
-          created_at: new Date()
-        }
+        payload: chatEntity
       };
       socket.emit('chat-sendChat', {
         data,
         conversation_id: conversation_id || getTemporaryConversationId
       });
+      if (conversation_id) {
+        /**
+         * * This is to update both parties recent conversations
+         */
+        recentSocket.emit('user-updateOwnRecents', {
+          relatedUser: user,
+          channelUserId: currentUser?.id,
+          chat: chatEntity,
+          conversation_id,
+          conversation_type
+        });
+        recentSocket.emit('user-updatePartnerRecents', {
+          relatedUser: currentUser,
+          channelUserId: user?.id,
+          chat: chatEntity,
+          conversation_id,
+          conversation_type
+        });
+      }
       sendChat(data);
     },
-    [conversation_id]
+    [conversation_id, conversation_type]
   );
 
   const EmptyChat = useCallback(() => {
@@ -371,7 +424,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
         />
         <Typography
           style={{ width: 300, marginTop: 20, textAlign: 'center' }}
-          title={`You and ${user?.firstName} ${user?.lastName} doesn't have any conversation.`}
+          title={`You and ${user?.first_name} ${user?.last_name} doesn't have any conversation.`}
           size={15}
           numberOfLines={5}
           color={Colors.grey_light}
@@ -519,7 +572,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
             />
             <Typography
               title={`${
-                user.firstName || user.lastName || user.email || 'User'
+                user.first_name || user.last_name || user.email || 'User'
               } is typing`}
               size={12}
               color={Colors.grey}
@@ -639,13 +692,14 @@ const TypingContainer = styled.View`
 `;
 
 const LoadMoreContainer = styled(Animated.View)`
-  width: 100%;
-  height: 40px;
+  width: 20px;
+  height: 20px;
   background: ${Colors.white};
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: row;
+  align-self: center;
 `;
 
 export default ChatRoom;

@@ -1,6 +1,5 @@
 import {
   NavigatorScreenParams,
-  DrawerActions,
   createNavigationContainerRef,
   StackActions
 } from '@react-navigation/native';
@@ -35,25 +34,6 @@ export function replace<Screen extends keyof RootParamList>(
   if (navigationRef.isReady()) {
     navigationRef.dispatch(StackActions.replace(screen, options));
   }
-}
-
-export function useDrawer() {
-  const openDrawer = () => {
-    if (navigationRef.isReady() && navigationRef.current) {
-      navigationRef.current.dispatch(DrawerActions.openDrawer());
-    }
-  };
-
-  const closeDrawer = () => {
-    if (navigationRef.isReady() && navigationRef.current) {
-      navigationRef.current.dispatch(DrawerActions.closeDrawer());
-    }
-  };
-
-  return {
-    openDrawer,
-    closeDrawer
-  };
 }
 
 export function navigationPush<Screen extends keyof RootParamList>(
