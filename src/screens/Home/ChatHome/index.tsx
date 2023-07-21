@@ -77,13 +77,6 @@ const Card = ({ user }: { user: User }) => {
             numberOfLines={2}
           />
         </CardMainInfo>
-        <Typography
-          title={'Hey come join us. Please see the time now!!'}
-          size={13}
-          fontFamily="Roboto-Medium"
-          color={Colors.grey_light}
-          numberOfLines={1}
-        />
       </StyledCard>
     </TouchableOpacity>
   );
@@ -356,7 +349,8 @@ export const ChatHome = () => {
                     <Avatar
                       source={item.user_user_meta.profile_photo}
                       size={40}
-                      active={true}
+                      active={item.user_user_meta.activity.is_active}
+                      showActive={item.user_user_meta.activity.show_activity}
                     />
                     <MessageTextContainer>
                       <Typography

@@ -104,7 +104,8 @@ const RecentConversationContextComponent: React.FC<Props> = ({ children }) => {
             conversation_id: data.conversation_id,
             conversation_type: data.conversation_type,
             user_user_meta: {
-              profile_photo: data.relatedUser.user_meta?.profile_photo!
+              profile_photo: data.relatedUser.user_meta?.profile_photo!,
+              activity: data.relatedUser.user_meta?.activity
             },
             user_partner: data.relatedUser,
             users_conversations: [data.users_conversations]
@@ -124,6 +125,20 @@ const RecentConversationContextComponent: React.FC<Props> = ({ children }) => {
         const currentRouteName = navigationRef.getCurrentRoute()?.name;
         const userIdInRoom = (navigationRef.getCurrentRoute()?.params as any)
           ?.user?.id;
+
+        /**
+         * If the partner is also inside the room
+         */
+        if (
+          currentRouteName === 'Room' &&
+          userIdInRoom == data.relatedUser.id
+        ) {
+          fetchUpdateUnread({
+            user_id: data.relatedUser.id,
+            conversation_id:
+              recent_conversations![conversationIndex].conversation_id
+          });
+        }
 
         if (conversationIndex !== -1) {
           const copy = [...(recent_conversations || [])];
@@ -152,7 +167,8 @@ const RecentConversationContextComponent: React.FC<Props> = ({ children }) => {
               conversation_id: data.conversation_id,
               conversation_type: data.conversation_type,
               user_user_meta: {
-                profile_photo: data.relatedUser.user_meta?.profile_photo!
+                profile_photo: data.relatedUser.user_meta?.profile_photo!,
+                activity: data.relatedUser.user_meta?.activity
               },
               user_partner: data.relatedUser,
               users_conversations: [data.users_conversations]

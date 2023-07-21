@@ -37,6 +37,15 @@ module.exports = {
     owner: 'dondon181409',
     scheme: 'com.mainrow.skychat',
     originalFullName: '@dondon181409/skychat',
-    currentFullName: '@dondon181409/skychat'
+    currentFullName: '@dondon181409/skychat',
+    plugins: [
+      [
+        '@config-plugins/react-native-webrtc',
+        {
+          cameraPermission: 'Allow Skychat to access your camera',
+          microphonePermission: 'Allow Skychat to access your microphone'
+        }
+      ]
+    ]
   }
 };

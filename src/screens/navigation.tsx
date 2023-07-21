@@ -12,7 +12,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Verify, GetStarted, StartAccount } from './Auth';
 import { ChatHome } from './Home';
 import { Recent } from './Home/Recent';
-import { Call } from './Home/Call';
 import { Account } from './Home/Account';
 import ChatRoom from './Home/ChatHome/Room';
 
@@ -29,6 +28,7 @@ import {
   MaterialIcons
 } from '@expo/vector-icons';
 import Colors from '../types/Colors';
+import CallRoom from './Home/Call/CallRoom';
 
 export type RootParamList = AppStackParamList &
   AuthStackParamList &
@@ -121,7 +121,7 @@ const TabNavigators = () => {
       />
       <StackTab.Screen
         name="Call"
-        component={Call}
+        component={CallRoom}
         options={{
           tabBarIcon: useCallback(
             (params: any) => (

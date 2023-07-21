@@ -7,12 +7,12 @@ export interface Role {
   name: string;
 }
 
-interface UserActivity {
+export interface UserActivity {
   show_activity?: boolean;
   is_active?: boolean;
   last_active?: Date;
 }
-interface UserMeta {
+export interface UserMeta {
   google_id?: string;
   profile_photo: string;
   activity?: UserActivity;
