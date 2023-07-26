@@ -62,6 +62,8 @@ export type ChatStackParamList = {
 export type CallStackParamList = {
   CallRoom: {
     user?: User;
+    roomId?: string;
+    offer?: string;
     type: CallType;
   };
   PromptCall: {

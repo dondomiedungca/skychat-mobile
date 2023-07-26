@@ -7,7 +7,8 @@ import styled from 'styled-components/native';
 import Avatar from '../../../components/Avatar';
 import { Typography } from '../../../components/Typography';
 import { CallListenerContext } from '../../../context/call-listener.context';
-import { navigationRef } from '../../../libs/rootNavigation';
+import { navigate, navigationRef } from '../../../libs/rootNavigation';
+import { CallType } from '../../../types/Call';
 import Colors from '../../../types/Colors';
 import { CallStackParamList, RootParamList } from '../../navigation';
 
@@ -40,7 +41,15 @@ const PromptCall = ({ route, navigation }: PromptCallScreenProps) => {
         />
       </HeadContainer>
       <ButtonContainer>
-        <StyledTouchableOpacity style={{ backgroundColor: Colors.green_light }}>
+        <StyledTouchableOpacity
+          style={{ backgroundColor: Colors.green_light }}
+          onPress={() => {
+            navigate('Call', {
+              screen: 'CallRoom',
+              params: { type: CallType.ANSWER, offer, roomId }
+            });
+          }}
+        >
           <Ionicons name="call" size={24} color={Colors.white} />
         </StyledTouchableOpacity>
         <StyledTouchableOpacity
