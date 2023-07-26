@@ -4,8 +4,8 @@ import styled from 'styled-components/native';
 
 import spinner from './../../assets/png/spinner.gif';
 
-const FULL_WIDTH = Dimensions.get('screen').width;
-const FULL_HEIGHT = Dimensions.get('screen').height;
+const FULL_WIDTH = Dimensions.get('window').width;
+const FULL_HEIGHT = Dimensions.get('window').height;
 
 export type ContentLoadingWrapperTypes = {
   children: React.ReactNode;

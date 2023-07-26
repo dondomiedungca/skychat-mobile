@@ -19,10 +19,10 @@ import Avatar from '../../components/Avatar';
 import { UserContext } from '../../context/user.context';
 import { useFetchEffect } from '../../libs/useFetchEffect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { replace } from '../../libs/rootNavigation';
+import { navigationReplace } from '../../libs/rootNavigation';
 import { useLogout } from '../../libs/useUser';
 
-const FULL_WIDTH = Dimensions.get('screen').width;
+const FULL_WIDTH = Dimensions.get('window').width;
 
 export const Account = () => {
   const { user: currentUser, setUser } = useContext(UserContext);
@@ -56,7 +56,7 @@ export const Account = () => {
     onData: async () => {
       await AsyncStorage.removeItem('ACCESS_TOKEN');
       await AsyncStorage.removeItem('REFRESH_TOKEN');
-      replace('Auth', { screen: 'GetStarted' });
+      navigationReplace('Auth', { screen: 'GetStarted' });
       setUser(undefined);
     }
   });

@@ -24,21 +24,24 @@ import { User } from '../types/User';
 import {
   FontAwesome5,
   Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons
+  MaterialCommunityIcons
 } from '@expo/vector-icons';
 import Colors from '../types/Colors';
 import CallRoom from './Home/Call/CallRoom';
+import { CallType } from '../types/Call';
+import PromptCall from './Home/Call/PromptCall';
 
 export type RootParamList = AppStackParamList &
   AuthStackParamList &
   HomeStackTabParamList &
-  ChatStackParamList;
+  ChatStackParamList &
+  CallStackParamList;
 
 export type AppStackParamList = {
   Main: NavigatorScreenParams<HomeStackTabParamList>;
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Chat: NavigatorScreenParams<ChatStackParamList>;
+  Call: NavigatorScreenParams<CallStackParamList>;
 };
 
 export type AuthStackParamList = {
@@ -56,16 +59,28 @@ export type ChatStackParamList = {
   };
 };
 
+export type CallStackParamList = {
+  CallRoom: {
+    user?: User;
+    type: CallType;
+  };
+  PromptCall: {
+    caller: User;
+    roomId: string;
+    offer: any;
+  };
+};
+
 export type HomeStackTabParamList = {
   Home: undefined;
   Recent: undefined;
-  Call: undefined;
   Account: undefined;
 };
 
 const AppStack = createStackNavigator<AppStackParamList>();
 const AuthStack = createStackNavigator<AuthStackParamList>();
 const ChatStack = createStackNavigator<ChatStackParamList>();
+const CallStack = createStackNavigator<CallStackParamList>();
 const StackTab = createBottomTabNavigator<HomeStackTabParamList>();
 
 const TransitionScreenOptions = {
@@ -120,22 +135,6 @@ const TabNavigators = () => {
         }}
       />
       <StackTab.Screen
-        name="Call"
-        component={CallRoom}
-        options={{
-          tabBarIcon: useCallback(
-            (params: any) => (
-              <MaterialIcons
-                name="video-call"
-                size={29}
-                color={params.focused ? Colors.blue : Colors.grey_light}
-              />
-            ),
-            []
-          )
-        }}
-      />
-      <StackTab.Screen
         name="Account"
         component={Account}
         options={{
@@ -165,6 +164,19 @@ const ChatNavigator = () => {
         <ChatStack.Screen name="Room" component={ChatRoom} />
       </ChatStack.Group>
     </ChatStack.Navigator>
+  );
+};
+
+const CallNavigator = () => {
+  return (
+    <CallStack.Navigator>
+      <CallStack.Group
+        screenOptions={{ headerShown: false, ...TransitionScreenOptions }}
+      >
+        <CallStack.Screen name="CallRoom" component={CallRoom} />
+        <CallStack.Screen name="PromptCall" component={PromptCall} />
+      </CallStack.Group>
+    </CallStack.Navigator>
   );
 };
 
@@ -201,6 +213,7 @@ const Navigation = () => {
         <AppStack.Screen name="Auth" component={AuthNavigator} />
         <AppStack.Screen name="Main" component={TabNavigators} />
         <AppStack.Screen name="Chat" component={ChatNavigator} />
+        <AppStack.Screen name="Call" component={CallNavigator} />
       </AppStack.Navigator>
     </NavigationContainer>
   );

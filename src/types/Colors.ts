@@ -11,5 +11,8 @@ export default {
   secondary: '#EFFFFD',
   primary_light: '#85F4FF',
   secondary_dark: '#B8FFF9',
-  error: '#ff4d40'
+  error: '#ff4d40',
+  error_light: '#fa786e',
+  green: '#63ff9f',
+  green_light: '#87ffb5'
 };

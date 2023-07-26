@@ -27,7 +27,7 @@ export function navigate<Screen extends keyof RootParamList>(
   }
 }
 
-export function replace<Screen extends keyof RootParamList>(
+export function navigationReplace<Screen extends keyof RootParamList>(
   screen: Screen,
   options?: ScreenOptions<Screen>
 ) {

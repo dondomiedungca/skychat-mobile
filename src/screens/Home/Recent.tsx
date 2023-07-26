@@ -11,7 +11,7 @@ import { HomeHeader } from './partials/HomeHeader';
 import Colors from '../../types/Colors';
 import { navigate } from '../../libs/rootNavigation';
 
-const FULL_WIDTH = Dimensions.get('screen').height;
+const FULL_WIDTH = Dimensions.get('window').height;
 
 export const ListPeople = () => {
   return <></>;

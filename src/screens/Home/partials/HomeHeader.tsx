@@ -7,7 +7,7 @@ import { Typography } from '../../../components/Typography';
 
 import Colors from '../../../types/Colors';
 
-const FULL_WIDTH = Dimensions.get('screen').width;
+const FULL_WIDTH = Dimensions.get('window').width;
 
 export const HomeHeader = ({
   onPressSearch

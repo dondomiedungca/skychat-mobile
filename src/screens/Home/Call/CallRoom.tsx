@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState
+} from 'react';
 import styled from 'styled-components/native';
 import {
   ScreenCapturePickerView,
@@ -13,16 +20,130 @@ import {
 } from 'react-native-webrtc';
 
 import Colors from '../../../types/Colors';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Dimensions } from 'react-native';
+import Avatar from '../../../components/Avatar';
+import { UserContext } from '../../../context/user.context';
+import { Typography } from '../../../components/Typography';
+import Constants from 'expo-constants';
+import { io } from 'socket.io-client';
+import { StackNavigationProp } from '@react-navigation/stack';
+import {
+  CallStackParamList,
+  HomeStackTabParamList,
+  RootParamList
+} from '../../navigation';
+import { RouteProp, useFocusEffect } from '@react-navigation/native';
+import { CallType } from '../../../types/Call';
+import { navigationRef } from '../../../libs/rootNavigation';
 
-const CallRoom = () => {
+const HEIGHT = Dimensions.get('window').height;
+const WIDTH = Dimensions.get('window').width;
+const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
+
+const SERVERS = {
+  iceServers: [
+    {
+      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302']
+    }
+  ]
+};
+
+type CallScreenProps = {
+  navigation: StackNavigationProp<RootParamList>;
+  route: RouteProp<CallStackParamList, 'CallRoom'>;
+};
+
+const CallRoom = ({ navigation, route }: CallScreenProps) => {
+  const { user } = useContext(UserContext);
+  const partner = route?.params?.user;
+  const type = route?.params?.type;
+
   const [localStream, setLocalStream] = useState<any>();
+  const [remoteStream, setRemoteStream] = useState<any>();
+  const [peerConnection, setPeerConnection] = useState<any>();
 
   const [isOpenCam, setOpenCam] = useState<boolean>(true);
   const [isOpenMic, setOpenMic] = useState<boolean>(true);
   const [isFlip, setFlip] = useState<boolean>(true);
 
+  const roomId = useMemo(() => {
+    const parties = [partner, user].sort(
+      (a, b) =>
+        new Date(b?.created_at!).getTime() - new Date(a?.created_at!).getTime()
+    );
+
+    return parties.map((p) => p?.id).join('_call_room_');
+  }, [partner, user]);
+
+  const socket = useMemo(() => {
+    return io(`${BASE_URL}/call`, {
+      query: {
+        roomId
+      },
+      forceNew: true
+    });
+  }, [roomId]);
+
+  const exit = useCallback(() => {
+    peerConnection?.close();
+    setLocalStream(null);
+    setRemoteStream(null);
+    setPeerConnection(null);
+    if (
+      navigationRef?.canGoBack() &&
+      navigationRef?.getCurrentRoute()?.name === 'CallRoom'
+    ) {
+      navigationRef.goBack();
+    }
+  }, [navigationRef]);
+
+  useLayoutEffect(() => {
+    socket.on('call-partnerManualEnd', () => {
+      exit();
+    });
+  }, [socket, navigationRef]);
+
+  const createPeerConnection = useCallback(async () => {
+    if (localStream) {
+      localStream.getTrack().forEach((track: any) => {
+        peerConnection.addTrack(track, localStream);
+      });
+    }
+
+    if (peerConnection && remoteStream) {
+      peerConnection.onTrack = async (event: any) => {
+        event.streams[0].getTracks().forEach((track: any) => {
+          remoteStream.addTrack(track);
+        });
+      };
+      peerConnection.onicecandidate = async (event: any) => {
+        if (event.candidate) {
+          socket.emit('call-handleIceCandidate', {
+            candidate: event.candidate,
+            type: 'iceCandidate'
+          });
+        }
+      };
+    }
+  }, [socket, peerConnection, localStream, remoteStream]);
+
+  const createOffer = useCallback(async () => {
+    if (peerConnection) {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      socket.emit('call-handleOffer', {
+        offer,
+        type: 'offer',
+        partnerId: partner?.id,
+        roomId,
+        caller: user
+      });
+    }
+  }, [socket, peerConnection, roomId, partner, user]);
+
   const init = useCallback(async () => {
+    setPeerConnection(new RTCPeerConnection(SERVERS));
     try {
       const mediaStream = await mediaDevices.getUserMedia({
         audio: true,
@@ -32,11 +153,29 @@ const CallRoom = () => {
         }
       });
 
+      const remoteUserStream = new MediaStream(undefined);
+
+      setRemoteStream(remoteUserStream);
       setLocalStream(mediaStream);
+      createPeerConnection();
     } catch (err) {
       console.log(err);
     }
   }, []);
+
+  useEffect(() => {
+    if (peerConnection) {
+      if (type == CallType.CALL) {
+        createOffer();
+      }
+    }
+  }, [type, peerConnection]);
+
+  useFocusEffect(
+    useCallback(() => {
+      init();
+    }, [])
+  );
 
   const toggleCamera = useCallback(async () => {
     setOpenCam(!isOpenCam);
@@ -58,21 +197,38 @@ const CallRoom = () => {
     }
   }, [isFlip, localStream]);
 
-  useEffect(() => {
-    init();
-  }, []);
-
   return (
     <Container>
-      <CurrerntUserContainer>
+      <RemoteUserContainer>
+        <Video
+          mirror={!!isFlip}
+          objectFit={'cover'}
+          streamURL={remoteStream?.toURL()}
+          zOrder={10}
+        />
+      </RemoteUserContainer>
+      <CurrentUserContainer>
         <Video
           mirror={!!isFlip}
           objectFit={'cover'}
           streamURL={localStream?.toURL()}
           zOrder={10}
         />
-        {!isOpenCam && <BlackCover />}
-      </CurrerntUserContainer>
+        {!isOpenCam && (
+          <BlackCover>
+            <Avatar
+              source={user?.user_meta?.profile_photo}
+              size={80}
+              showActive={false}
+            />
+            <Typography
+              title={`${user?.first_name} ${user?.last_name}`}
+              size={15}
+              color={Colors.white}
+            />
+          </BlackCover>
+        )}
+      </CurrentUserContainer>
       <ButtonContainer>
         <StyledTouchableOpacity onPress={toggleCamera}>
           <MaterialCommunityIcons
@@ -88,6 +244,17 @@ const CallRoom = () => {
             color={isOpenMic ? Colors.primary : Colors.grey_light}
           />
         </StyledTouchableOpacity>
+        <StyledTouchableOpacity style={{ backgroundColor: Colors.error_light }}>
+          <MaterialIcons
+            onPress={() => {
+              socket.emit('call-manualEnd', { partnerId: partner?.id });
+              exit();
+            }}
+            name="call-end"
+            size={30}
+            color={Colors.white}
+          />
+        </StyledTouchableOpacity>
       </ButtonContainer>
       <StyledTouchableOpacity
         onPress={flipCamera}
@@ -96,9 +263,9 @@ const CallRoom = () => {
           position: 'absolute',
           bottom: 15,
           right: 15,
-          width: 40,
+          width: 30,
           borderRadius: 10,
-          height: 40
+          height: 30
         }}
       >
         <MaterialCommunityIcons
@@ -116,12 +283,20 @@ const Container = styled.View`
   flex: 1;
   background: ${Colors.grey};
   position: relative;
+  display: flex;
+  flex-direction: column;
 `;
 
-const CurrerntUserContainer = styled.View`
+const RemoteUserContainer = styled.View`
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: ${WIDTH}px;
+  height: ${HEIGHT / 2}px;
+`;
+
+const CurrentUserContainer = styled.View`
+  position: relative;
+  width: ${WIDTH}px;
+  height: ${HEIGHT / 2}px;
 `;
 
 const BlackCover = styled.View`
@@ -131,7 +306,12 @@ const BlackCover = styled.View`
   left: 0;
   width: 100%;
   height: 100%;
-  background: ${Colors.grey};
+  background: ${Colors.black};
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
 `;
 
 const Video = styled(RTCView)`
@@ -152,15 +332,15 @@ const ButtonContainer = styled.View`
   bottom: 0;
   left: 0;
   height: 80px;
-  width: 100%;
+  width: ${WIDTH}px;
   background: transparent;
   gap: 15px;
 `;
 
 const StyledTouchableOpacity = styled.TouchableOpacity`
   background: ${Colors.white};
-  height: 60px;
-  width: 60px;
+  height: 50px;
+  width: 50px;
   display: flex;
   align-items: center;
   justify-content: center;

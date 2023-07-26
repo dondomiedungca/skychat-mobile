@@ -12,8 +12,10 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../screens/navigation';
 import Colors from '../types/Colors';
 import { Typography } from './Typography';
+import { navigate } from '../libs/rootNavigation';
+import { CallType } from '../types/Call';
 
-const FULL_WIDTH = Dimensions.get('screen').width;
+const FULL_WIDTH = Dimensions.get('window').width;
 
 const RoomHeader = ({
   user,
@@ -57,7 +59,14 @@ const RoomHeader = ({
           ></Typography>
         )}
       </NameAndActivity>
-      <StyledTouchableOpacity>
+      <StyledTouchableOpacity
+        onPress={() =>
+          navigate('Call', {
+            screen: 'CallRoom',
+            params: { user, type: CallType.CALL }
+          })
+        }
+      >
         <Image style={{ width: 25, height: 25 }} source={ConferenceIcon} />
       </StyledTouchableOpacity>
       <StyledTouchableOpacity>

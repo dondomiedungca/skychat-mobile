@@ -12,6 +12,7 @@ import Navigation from './src/screens/navigation';
 import UserContextComponent from './src/context/user.context';
 import RecentConversationContextComponent from './src/context/recent-conversation.context';
 import ReelsUsersContextComponent from './src/context/reels-of-users.context';
+import CallListenerContextComponent from './src/context/call-listener.context';
 
 const App = () => {
   const { appIsReady } = useCacheApp();
@@ -34,7 +35,9 @@ export default function Main() {
     <UserContextComponent>
       <ReelsUsersContextComponent>
         <RecentConversationContextComponent>
-          <App />
+          <CallListenerContextComponent>
+            <App />
+          </CallListenerContextComponent>
         </RecentConversationContextComponent>
       </ReelsUsersContextComponent>
     </UserContextComponent>

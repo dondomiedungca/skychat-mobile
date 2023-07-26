@@ -22,8 +22,8 @@ interface Props {
   style?: StyleProp<ViewStyle>;
 }
 
-const FULL_WIDTH = Dimensions.get('screen').width;
-const FULL_HEIGHT = Dimensions.get('screen').height - 100;
+const FULL_WIDTH = Dimensions.get('window').width;
+const FULL_HEIGHT = Dimensions.get('window').height - 100;
 
 const MainContainer: React.FC<Props> = ({
   children,
