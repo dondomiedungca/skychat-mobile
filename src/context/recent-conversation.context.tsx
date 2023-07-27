@@ -19,16 +19,20 @@ const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
 
 export type RecentConversationsType = {
   socket?: any;
+  initialLoading: boolean;
   updateUnreadOnRoomOpening?: (user: User, conversation_id: string) => void;
   recent_conversations?: RecentConversation[];
   setRecentConversations: React.Dispatch<
     React.SetStateAction<RecentConversation[] | undefined>
   >;
+  setInitialLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const RecentConversationsContext =
   React.createContext<RecentConversationsType>({
-    setRecentConversations: () => {}
+    setRecentConversations: () => {},
+    setInitialLoading: () => {},
+    initialLoading: true
   });
 
 interface Props {
@@ -48,6 +52,7 @@ const RecentConversationContextComponent: React.FC<Props> = ({ children }) => {
   const [recent_conversations, setRecentConversations] = React.useState<
     RecentConversation[] | undefined
   >();
+  const [initialLoading, setInitialLoading] = React.useState<boolean>(true);
   const { user: currentUser } = useContext(UserContext);
   const { makeRequest: fetchUpdateUnread } = useUpdateUnread();
 
@@ -220,7 +225,9 @@ const RecentConversationContextComponent: React.FC<Props> = ({ children }) => {
         recent_conversations,
         socket,
         setRecentConversations,
-        updateUnreadOnRoomOpening
+        updateUnreadOnRoomOpening,
+        initialLoading,
+        setInitialLoading
       }}
     >
       {children}

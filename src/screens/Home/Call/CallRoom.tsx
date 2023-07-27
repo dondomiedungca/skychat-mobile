@@ -268,16 +268,6 @@ const CallRoom = ({ navigation, route }: CallScreenProps) => {
 
   return (
     <Container>
-      {remoteStream && (
-        <RemoteUserContainer>
-          <Video
-            mirror={!!isFlip}
-            objectFit={'cover'}
-            streamURL={remoteStream.toURL()}
-            zOrder={10}
-          />
-        </RemoteUserContainer>
-      )}
       <CurrentUserContainer>
         {isOpenCam && localStream && (
           <Video
@@ -369,7 +359,7 @@ const RemoteUserContainer = styled.View`
 const CurrentUserContainer = styled.View`
   position: relative;
   width: ${WIDTH}px;
-  height: ${HEIGHT / 2}px;
+  height: ${HEIGHT}px;
 `;
 
 const BlackCover = styled.View`

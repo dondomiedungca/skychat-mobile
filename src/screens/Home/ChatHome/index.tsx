@@ -19,6 +19,7 @@ import {
   BottomSheetRefProps,
   BottomSheetView
 } from '../../../components/BottomSheet';
+import ConnectsLoader from './SkeletonLoaders/ConnectsLoader';
 
 // types and constants
 import Colors from '../../../types/Colors';
@@ -41,7 +42,7 @@ import EmptyState from './../../../../assets/png/empty_state.jpg';
 import { RecentConversationsContext } from '../../../context/recent-conversation.context';
 import { RecentConversation } from '../../../types/RecentConversation';
 import { ReelsUsersContext } from '../../../context/reels-of-users.context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import RecentLoader from './SkeletonLoaders/RecentLoader';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
@@ -77,46 +78,67 @@ const Card = ({ user }: { user: User }) => {
             numberOfLines={2}
           />
         </CardMainInfo>
+        {/* <Typography
+          style={{ position: 'absolute', bottom: 8, left: 15 }}
+          title={`Active last `}
+          size={11}
+          color={Colors.grey_light}
+        /> */}
       </StyledCard>
     </TouchableOpacity>
   );
 };
 
-const ConnectSectionComponent = memo(({ users }: { users: any }) => {
-  return (
-    <ConnectSection>
-      <Typography
-        title="Connects"
-        size={15}
-        color={Colors.grey}
-        fontFamily="Roboto-Medium"
-      />
-      <Connects>
-        <StyledFlatList
-          horizontal
-          keyExtractor={(item, index) => item + index.toString()}
-          data={users}
-          renderItem={({ item }: ListRenderItemInfo<any>) => {
-            return (
-              <RowContainer>
-                {item.length &&
-                  item?.map((user: User) => <Card key={user.id} user={user} />)}
-              </RowContainer>
-            );
-          }}
+const ConnectSectionComponent = memo(
+  ({ users, isLoading }: { users: any; isLoading: boolean }) => {
+    return (
+      <ConnectSection>
+        <Typography
+          title="Connects"
+          size={15}
+          color={Colors.grey}
+          fontFamily="Roboto-Medium"
         />
-      </Connects>
-    </ConnectSection>
-  );
-});
+        <Connects>
+          {!isLoading ? (
+            <StyledFlatList
+              horizontal
+              keyExtractor={(item, index) => item + index.toString()}
+              data={users}
+              renderItem={({ item }: ListRenderItemInfo<any>) => {
+                return (
+                  <RowContainer>
+                    {item.length &&
+                      item?.map((user: User) => (
+                        <Card key={user.id} user={user} />
+                      ))}
+                  </RowContainer>
+                );
+              }}
+            />
+          ) : (
+            <ConnectsLoader />
+          )}
+        </Connects>
+      </ConnectSection>
+    );
+  }
+);
 
 export const ChatHome = () => {
   const { user: currentUser } = useContext(UserContext);
-  const { users: reelsUsers, setUsers: setUsersReels } =
-    useContext(ReelsUsersContext);
-  const { recent_conversations, setRecentConversations } = useContext(
-    RecentConversationsContext
-  );
+  const {
+    users: reelsUsers,
+    setUsers: setUsersReels,
+    initialLoading,
+    setInitialLoading
+  } = useContext(ReelsUsersContext);
+  const {
+    recent_conversations,
+    setRecentConversations,
+    initialLoading: initialLoading2,
+    setInitialLoading: setInitialLoading2
+  } = useContext(RecentConversationsContext);
   const [refreshing, setRefreshing] = useState(false);
   const [activefilter, setActiveFilter] = useState<Filters>(Filters.ALL_CHATS);
 
@@ -136,6 +158,7 @@ export const ChatHome = () => {
         const chunked = _.chunk(data, 2);
         setUsersReels(chunked);
         setRefreshing(false);
+        setInitialLoading(false);
       }
     },
     dependencies: [refreshing]
@@ -149,7 +172,7 @@ export const ChatHome = () => {
           new Date(a.lastDateTime).getTime()
         );
       });
-
+      setInitialLoading2(false);
       setRecentConversations(sorted);
     }
   });
@@ -225,33 +248,9 @@ export const ChatHome = () => {
     [reelsUsers]
   );
 
-  return (
-    <MainContainer header={<HomeHeader onPressSearch={onPressSearch} />}>
-      <View>
-        <Container
-          refreshControl={
-            <RefreshControl
-              progressViewOffset={50}
-              progressBackgroundColor={Colors.white}
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                fetchUsers({ page: 1 });
-                fetchRecentConversation({ page: 1 });
-              }}
-            />
-          }
-        >
-          <ConnectSectionComponent users={reelsUsers} />
-        </Container>
-      </View>
-      <RecentContainer>
-        <Typography
-          title="Recent Chats"
-          size={15}
-          color={Colors.grey}
-          fontFamily="Roboto-Medium"
-        />
+  const FiltersComponent = memo(
+    ({ activefilter }: { activefilter: Filters }) => {
+      return (
         <GroupFilters>
           <TouchableOpacity onPress={() => setActiveFilter(Filters.ALL_CHATS)}>
             <Filter
@@ -334,80 +333,130 @@ export const ChatHome = () => {
             </Filter>
           </TouchableOpacity>
         </GroupFilters>
-        {recent_conversations?.length ? (
-          <RecentList
-            showsVerticalScrollIndicator={false}
-            data={recent_conversations}
-            keyExtractor={(item: any, index) => item.conversation_id}
-            renderItem={({ item }: ListRenderItemInfo<any>) => {
-              return (
-                <TouchableOpacity
-                  onPress={() => goToRoom(item)}
-                  delayPressIn={50}
-                >
-                  <MessageContainer>
-                    <Avatar
-                      source={item.user_user_meta.profile_photo}
-                      size={40}
-                      active={item.user_user_meta.activity.is_active}
-                      showActive={item.user_user_meta.activity.show_activity}
-                    />
-                    <MessageTextContainer>
-                      <Typography
-                        title={`${item.user_first_name} ${item.user_last_name}`}
-                        size={15}
-                        color={Colors.grey}
-                        fontFamily="Roboto-Bold"
-                        numberOfLines={1}
-                      />
-                      <Typography
-                        numberOfLines={1}
-                        title={`${
-                          item.lastUser.replaceAll('"', '') === currentUser?.id
-                            ? 'Me: '
-                            : ''
-                        }${item.lastMessage}`}
-                        fontFamily="Roboto-Medium"
-                        size={12}
-                        color={
-                          parseInt(item.unread)
-                            ? Colors.grey
-                            : Colors.grey_light
-                        }
-                      />
-                    </MessageTextContainer>
-                    <DetailsContainer>
-                      <Typography
-                        title={moment(item.lastDateTime).format('h:mm A')}
-                        size={10}
-                        color={Colors.grey_light}
-                      />
-                      {parseInt(item.unread) > 0 && (
-                        <Badge>
-                          <Typography
-                            title={item.unread}
-                            size={10}
-                            color={Colors.white}
-                          />
-                        </Badge>
-                      )}
-                    </DetailsContainer>
-                  </MessageContainer>
-                </TouchableOpacity>
-              );
-            }}
-          />
-        ) : (
-          <EmptyRecentList>
-            <StyledEmptyImage source={EmptyState} />
-            <Typography
-              title={'No messages'}
-              size={15}
-              color={Colors.grey_light}
+      );
+    }
+  );
+
+  return (
+    <MainContainer header={<HomeHeader onPressSearch={onPressSearch} />}>
+      <View>
+        <Container
+          refreshControl={
+            <RefreshControl
+              progressViewOffset={50}
+              progressBackgroundColor={Colors.white}
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                fetchUsers({ page: 1 });
+                fetchRecentConversation({ page: 1 });
+              }}
             />
-          </EmptyRecentList>
-        )}
-      </RecentContainer>
+          }
+        >
+          <ConnectSectionComponent
+            users={reelsUsers}
+            isLoading={handleFetchUsers.isLoading || initialLoading}
+          />
+        </Container>
+      </View>
+      {!handleRecentConversations.isLoading && !initialLoading2 ? (
+        <RecentContainer>
+          <Typography
+            title="Recent Chats"
+            size={15}
+            color={Colors.grey}
+            fontFamily="Roboto-Medium"
+          />
+          <FiltersComponent activefilter={activefilter} />
+          {recent_conversations?.length ? (
+            <RecentList
+              showsVerticalScrollIndicator={false}
+              extraData={recent_conversations}
+              data={recent_conversations}
+              keyExtractor={(item: any, index) => item.conversation_id}
+              renderItem={({ item }: ListRenderItemInfo<any>) => {
+                return (
+                  <TouchableOpacity
+                    onPress={() => goToRoom(item)}
+                    delayPressIn={50}
+                  >
+                    <MessageContainer>
+                      <Avatar
+                        source={item.user_user_meta.profile_photo}
+                        size={40}
+                        active={item.user_user_meta.activity.is_active}
+                        showActive={item.user_user_meta.activity.show_activity}
+                      />
+                      <MessageTextContainer>
+                        <Typography
+                          title={`${item.user_first_name} ${item.user_last_name}`}
+                          size={15}
+                          color={Colors.grey}
+                          fontFamily="Roboto-Bold"
+                          numberOfLines={1}
+                        />
+                        <Typography
+                          numberOfLines={1}
+                          title={`${
+                            item.lastUser.replaceAll('"', '') ===
+                            currentUser?.id
+                              ? 'Me: '
+                              : ''
+                          }${item.lastMessage}`}
+                          fontFamily="Roboto-Medium"
+                          size={12}
+                          color={
+                            parseInt(item.unread)
+                              ? Colors.grey
+                              : Colors.grey_light
+                          }
+                        />
+                      </MessageTextContainer>
+                      <DetailsContainer>
+                        <Typography
+                          title={moment(item.lastDateTime).format('h:mm A')}
+                          size={10}
+                          color={Colors.grey_light}
+                        />
+                        {parseInt(item.unread) > 0 && (
+                          <Badge>
+                            <Typography
+                              title={item.unread}
+                              size={10}
+                              color={Colors.white}
+                            />
+                          </Badge>
+                        )}
+                      </DetailsContainer>
+                    </MessageContainer>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          ) : (
+            <EmptyRecentList>
+              <StyledEmptyImage source={EmptyState} />
+              <Typography
+                title={'No messages'}
+                size={15}
+                color={Colors.grey_light}
+              />
+            </EmptyRecentList>
+          )}
+        </RecentContainer>
+      ) : (
+        <RecentAsLoaderContainer>
+          <Typography
+            title="Recent Chats"
+            size={15}
+            color={Colors.grey}
+            fontFamily="Roboto-Medium"
+          />
+          <FiltersComponent activefilter={activefilter} />
+          <RecentLoader />
+        </RecentAsLoaderContainer>
+      )}
       <BottomSheetView ref={ref}></BottomSheetView>
     </MainContainer>
   );
@@ -431,6 +480,12 @@ const RecentContainer = styled.View`
   flex: 1;
 `;
 
+const RecentAsLoaderContainer = styled.View`
+  background: ${Colors.white};
+  width: 100%;
+  padding: 15px 10px 0 10px;
+`;
+
 const StyledFlatList = styled.FlatList`
   padding-bottom: 10px;
 `;
@@ -440,6 +495,7 @@ const Connects = styled.View`
 `;
 
 const StyledCard = styled.View`
+  position: relative;
   padding: 15px;
   border-radius: 10px;
   background: ${Colors.white_light_dark};
@@ -477,7 +533,7 @@ const MessageContainer = styled.View`
   background: ${Colors.white};
   padding: 7px 7px 7px 0;
   gap: 10px;
-  min-height: 60px;
+  height: 70px;
 `;
 
 const MessageTextContainer = styled.View`

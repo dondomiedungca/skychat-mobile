@@ -6,12 +6,16 @@ import { UsersConversations } from '../types/UsersConversations';
 import { UserContext } from './user.context';
 
 export type ReelsUsersContextType = {
+  initialLoading: boolean;
   socket?: any;
   users?: User[][];
+  setInitialLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setUsers: React.Dispatch<React.SetStateAction<User[][]>>;
 };
 
 export const ReelsUsersContext = React.createContext<ReelsUsersContextType>({
+  initialLoading: true,
+  setInitialLoading: () => {},
   setUsers: () => {}
 });
 
@@ -31,6 +35,7 @@ interface UpdatePartnerReels {
 
 const ReelsUsersContextComponent: React.FC<Props> = ({ children }) => {
   const [users, setUsers] = React.useState<User[][]>([]);
+  const [initialLoading, setInitialLoading] = React.useState<boolean>(true);
 
   const { user: currentUser } = useContext(UserContext);
   /**
@@ -87,7 +92,9 @@ const ReelsUsersContextComponent: React.FC<Props> = ({ children }) => {
   }, [socket, users]);
 
   return (
-    <ReelsUsersContext.Provider value={{ users, setUsers, socket }}>
+    <ReelsUsersContext.Provider
+      value={{ users, setUsers, socket, initialLoading, setInitialLoading }}
+    >
       {children}
     </ReelsUsersContext.Provider>
   );

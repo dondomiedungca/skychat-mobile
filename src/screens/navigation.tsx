@@ -24,7 +24,8 @@ import { User } from '../types/User';
 import {
   FontAwesome5,
   Ionicons,
-  MaterialCommunityIcons
+  MaterialCommunityIcons,
+  MaterialIcons
 } from '@expo/vector-icons';
 import Colors from '../types/Colors';
 import CallRoom from './Home/Call/CallRoom';
@@ -76,6 +77,7 @@ export type CallStackParamList = {
 export type HomeStackTabParamList = {
   Home: undefined;
   Recent: undefined;
+  RecentCall?: undefined;
   Account: undefined;
 };
 
@@ -129,6 +131,22 @@ const TabNavigators = () => {
               <FontAwesome5
                 name="history"
                 size={21}
+                color={params.focused ? Colors.blue : Colors.grey_light}
+              />
+            ),
+            []
+          )
+        }}
+      />
+      <StackTab.Screen
+        name="RecentCall"
+        component={Account}
+        options={{
+          tabBarIcon: useCallback(
+            (params: any) => (
+              <MaterialIcons
+                name="video-call"
+                size={29}
                 color={params.focused ? Colors.blue : Colors.grey_light}
               />
             ),
