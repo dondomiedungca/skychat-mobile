@@ -43,6 +43,7 @@ import { ReelsUsersContext } from '../../../context/reels-of-users.context';
 import { User } from '../../../types/User';
 import { UsersConversations } from '../../../types/UsersConversations';
 import { RecentConversationsContext } from '../../../context/recent-conversation.context';
+import RoomLoader from './SkeletonLoaders/RoomLoader';
 
 const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
 
@@ -167,6 +168,9 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   const [messages, setMessages] = useState<ChatsAsSection[]>([]);
   const [typing, setTyping] = useState<boolean>(false);
   const [loadMore, setLoadMore] = useState<boolean>(false);
+  const [initialLoading, setInitialLoading] = useState<boolean>(
+    !!user?.users_conversations?.[0]?.conversation?.id || false
+  );
   const [allChats, setAllChats] = useState<number>(0);
 
   const getTemporaryConversationId = useMemo(() => {
@@ -220,7 +224,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   );
 
   useLayoutEffect(() => {
-    if (currentUser) {
+    if (currentUser && conversation_id) {
       fetchChats({
         conversation_id,
         currentLength: messages.length,
@@ -235,7 +239,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [conversation_id]);
 
   useLayoutEffect(() => {
     socket.on('chat-receiveChat', (payload) => {
@@ -303,6 +307,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
         setMessages(sections);
       }
       setLoadMore(false);
+      setInitialLoading(false);
     }
   });
 
@@ -540,29 +545,35 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
       header={<RoomHeader user={user} navigation={navigation} />}
     >
       <Container>
-        {messages.length ? (
-          <>
-            {loadMore && (
-              <LoadMoreContainer>
-                <Image
-                  style={{ width: 20, height: 20, marginLeft: 5 }}
-                  source={LoadMore}
-                />
-              </LoadMoreContainer>
-            )}
-            <StyledFlatList
-              data={messages}
-              renderItem={({ item }: { item: any }) => <Item section={item} />}
-              keyExtractor={(item: any) => item.title}
-              showsVerticalScrollIndicator={false}
-              inverted
-              onEndReached={() => {
-                if (!isGatheredAllData) setLoadMore(true);
-              }}
-            />
-          </>
+        {!initialLoading ? (
+          messages.length ? (
+            <>
+              {loadMore && (
+                <LoadMoreContainer>
+                  <Image
+                    style={{ width: 20, height: 20, marginLeft: 5 }}
+                    source={LoadMore}
+                  />
+                </LoadMoreContainer>
+              )}
+              <StyledFlatList
+                data={messages}
+                renderItem={({ item }: { item: any }) => (
+                  <Item section={item} />
+                )}
+                keyExtractor={(item: any) => item.title}
+                showsVerticalScrollIndicator={false}
+                inverted
+                onEndReached={() => {
+                  if (!isGatheredAllData) setLoadMore(true);
+                }}
+              />
+            </>
+          ) : (
+            <EmptyChat />
+          )
         ) : (
-          <EmptyChat />
+          <RoomLoader />
         )}
         {typing && (
           <TypingContainer>

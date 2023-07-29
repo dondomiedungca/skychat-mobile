@@ -6,6 +6,11 @@ import { HTTPMethod, UseApiReturnProps, useApi } from './useApi';
 import { UserContext } from '../context/user.context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export enum TypeVerification {
+  EMAIL = 'EMAIL',
+  PHONE = 'PHONE'
+}
+
 export const useSigninWithGoogle = (): UseApiReturnProps => {
   const { setUser } = useContext(UserContext);
   const { isLoading, data, success, error, makeRequest } = useApi(
@@ -102,6 +107,56 @@ export const useLogout = () => {
 
   const fetch = async ({ refreshToken }: { refreshToken: string }) => {
     return makeRequest?.({ refreshToken });
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};
+
+export const useLoginWithPhone = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.POST,
+    '/users/signin-with-phone',
+    false
+  );
+
+  const fetch = async ({ phone_number }: { phone_number: string }) => {
+    return makeRequest?.({ phone_number });
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};
+
+export const useValidatePhoneOrEmailCode = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.POST,
+    '/users/verified-code',
+    false
+  );
+
+  const fetch = async ({
+    phone_number,
+    email,
+    code,
+    type
+  }: {
+    phone_number?: string;
+    email?: string;
+    code: string;
+    type: TypeVerification;
+  }) => {
+    return makeRequest?.({ phone_number, code, email, type });
   };
 
   return {

@@ -21,6 +21,7 @@ interface CustomButtonProps {
   iconLeft?: React.ReactNode;
   style?: any;
   isCircle?: boolean;
+  disabled?: boolean;
 }
 
 export const CustomButton: React.FC<CustomButtonProps> = ({
@@ -32,7 +33,8 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
   iconRight,
   iconLeft,
   style,
-  isCircle
+  isCircle,
+  disabled
 }) => {
   const { r, g, b } = hex2rgb(background || Colors.primary);
 
@@ -44,6 +46,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
       }}
     >
       <StyledPressable
+        disabled={disabled}
         isCircle={isCircle}
         style={{ borderRadius: isCircle ? 100 : 5 }}
         mode={mode}
@@ -76,6 +79,7 @@ type CustomButtonV2Props = {
   textColor?: string;
   style?: any;
   backgroundColor?: string;
+  disabled?: boolean;
   onPress?: () => void;
   [x: string]: any;
 };

@@ -78,12 +78,12 @@ const Card = ({ user }: { user: User }) => {
             numberOfLines={2}
           />
         </CardMainInfo>
-        {/* <Typography
+        <Typography
           style={{ position: 'absolute', bottom: 8, left: 15 }}
-          title={`Active last `}
+          title={`I got your email, here is ...`}
           size={11}
           color={Colors.grey_light}
-        /> */}
+        />
       </StyledCard>
     </TouchableOpacity>
   );
@@ -94,7 +94,7 @@ const ConnectSectionComponent = memo(
     return (
       <ConnectSection>
         <Typography
-          title="Connects"
+          title="Pinned Chats"
           size={15}
           color={Colors.grey}
           fontFamily="Roboto-Medium"
@@ -371,6 +371,7 @@ export const ChatHome = () => {
           <FiltersComponent activefilter={activefilter} />
           {recent_conversations?.length ? (
             <RecentList
+              pagingEnabled={false}
               showsVerticalScrollIndicator={false}
               extraData={recent_conversations}
               data={recent_conversations}

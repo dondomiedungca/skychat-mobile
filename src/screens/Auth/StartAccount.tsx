@@ -22,11 +22,13 @@ import useMethodWrapper from '../../libs/useWrapper';
 import { useGoogleAuth } from './../../libs/useGoogle';
 import { UserContext } from '../../context/user.context';
 
-type HangoutScreenProps = {
+type StartAccountScreenProps = {
   navigation: StackNavigationProp<RootParamList>;
 };
 
-export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
+export const StartAccount: React.FC<StartAccountScreenProps> = ({
+  navigation
+}) => {
   const [email, setEmail] = useState<string>('');
   const { user } = useContext(UserContext);
   const { promptAsync, ...handleGoogleAuth } = useGoogleAuth();
@@ -86,7 +88,7 @@ export const StartAccount: React.FC<HangoutScreenProps> = ({ navigation }) => {
             style={{ borderRadius: 5, marginTop: 20 }}
             backgroundColor={Colors.white_light_dark}
             mode="elevated"
-            onPress={() => useMethodWrapper(console.log('Pressed'))}
+            onPress={() => useMethodWrapper(navigation.push('Phone'))}
           >
             Continue with Phone
           </CustomButtonV2>

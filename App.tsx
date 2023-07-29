@@ -13,6 +13,7 @@ import UserContextComponent from './src/context/user.context';
 import RecentConversationContextComponent from './src/context/recent-conversation.context';
 import ReelsUsersContextComponent from './src/context/reels-of-users.context';
 import CallListenerContextComponent from './src/context/call-listener.context';
+import OnBoardContextComponent from './src/context/onboarding-context';
 
 const App = () => {
   const { appIsReady } = useCacheApp();
@@ -32,15 +33,17 @@ const App = () => {
 
 export default function Main() {
   return (
-    <UserContextComponent>
-      <ReelsUsersContextComponent>
-        <RecentConversationContextComponent>
-          <CallListenerContextComponent>
-            <App />
-          </CallListenerContextComponent>
-        </RecentConversationContextComponent>
-      </ReelsUsersContextComponent>
-    </UserContextComponent>
+    <OnBoardContextComponent>
+      <UserContextComponent>
+        <ReelsUsersContextComponent>
+          <RecentConversationContextComponent>
+            <CallListenerContextComponent>
+              <App />
+            </CallListenerContextComponent>
+          </RecentConversationContextComponent>
+        </ReelsUsersContextComponent>
+      </UserContextComponent>
+    </OnBoardContextComponent>
   );
 }
 

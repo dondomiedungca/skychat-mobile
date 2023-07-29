@@ -31,6 +31,9 @@ import Colors from '../types/Colors';
 import CallRoom from './Home/Call/CallRoom';
 import { CallType } from '../types/Call';
 import PromptCall from './Home/Call/PromptCall';
+import Phone from './Auth/Phone';
+import { TypeVerification } from '../libs/useUser';
+import { PersonalInfo } from './Auth/PersonalInfo';
 
 export type RootParamList = AppStackParamList &
   AuthStackParamList &
@@ -48,9 +51,11 @@ export type AppStackParamList = {
 export type AuthStackParamList = {
   GetStarted: undefined;
   StartAccount: undefined;
+  Phone: undefined;
   Verify: {
-    email: string;
+    type: TypeVerification;
   };
+  PersonalInfo: undefined;
 };
 
 export type ChatStackParamList = {
@@ -208,7 +213,9 @@ const AuthNavigator = () => {
       >
         <AuthStack.Screen name="GetStarted" component={GetStarted} />
         <AuthStack.Screen name="StartAccount" component={StartAccount} />
+        <AuthStack.Screen name="Phone" component={Phone} />
         <AuthStack.Screen name="Verify" component={Verify} />
+        <AuthStack.Screen name="PersonalInfo" component={PersonalInfo} />
       </AuthStack.Group>
     </AuthStack.Navigator>
   );
