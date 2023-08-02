@@ -1,15 +1,9 @@
 import { AntDesign } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState
-} from 'react';
-import { Dimensions, Image } from 'react-native';
+import React, { useCallback, useContext, useState } from 'react';
+import { Dimensions, Image, Linking, Text } from 'react-native';
 import styled from 'styled-components/native';
-import { CustomButton, CustomButtonV2 } from '../../components/Buttons';
+import { CustomButton } from '../../components/Buttons';
 import Colors from '../../types/Colors';
 import { RootParamList } from '../navigation';
 import PhoneInput from 'react-native-phone-number-input';
@@ -17,6 +11,7 @@ import useMethodWrapper from '../../libs/useWrapper';
 import { OnboardContext } from '../../context/onboarding-context';
 import { TypeVerification, useLoginWithPhone } from './../../libs/useUser';
 import { useFetchEffect } from '../../libs/useFetchEffect';
+import PhoneContactVector from './../../../assets/png/phone_number_vector.jpg';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
@@ -65,10 +60,11 @@ const Phone = ({ navigation }: PhoneScreenProps) => {
 
   const onSubmitPhone = useCallback(async () => {
     if (value && formattedValue) {
-      dispatch({ property: 'phone_number', value });
+      dispatch({ property: 'phone_number', value, type: 'BY_KEY' });
       dispatch({
         property: 'formatted_phone_number',
-        value: formattedValue
+        value: formattedValue,
+        type: 'BY_KEY'
       });
     }
     if (
@@ -85,7 +81,10 @@ const Phone = ({ navigation }: PhoneScreenProps) => {
     <Container>
       <BackButton />
       <StepIndicator />
+      <StyledImage source={PhoneContactVector} />
+
       <PhoneInput
+        placeholder="Enter Phone Number"
         containerStyle={{ width: WIDTH - 83 }}
         defaultValue={value}
         defaultCode={country}
@@ -103,6 +102,9 @@ const Phone = ({ navigation }: PhoneScreenProps) => {
       />
       <CustomButton
         disabled={handleLoginWithPhone.isLoading}
+        background={
+          handleLoginWithPhone.isLoading ? Colors.grey_light : Colors.blue
+        }
         textColor={Colors.white}
         style={{
           borderRadius: 5,
@@ -123,6 +125,7 @@ const Container = styled.View`
   width: ${WIDTH}px;
   background: ${Colors.white};
   display: flex;
+  flex: 1;
   flex-direction: column;
   position: relative;
   align-items: center;
@@ -148,4 +151,11 @@ const Step = styled.View<{ active?: boolean }>`
     active ? Colors.primary : Colors.white_semi_dark};
   width: 30px;
   height: 5px;
+`;
+
+const StyledImage = styled(Image)`
+  width: 100%;
+  height: 200px;
+  aspect-ratio: 1.5/1.1;
+  margin-bottom: 30px;
 `;

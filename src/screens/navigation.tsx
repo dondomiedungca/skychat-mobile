@@ -55,7 +55,9 @@ export type AuthStackParamList = {
   Verify: {
     type: TypeVerification;
   };
-  PersonalInfo: undefined;
+  PersonalInfo: {
+    type: TypeVerification;
+  };
 };
 
 export type ChatStackParamList = {

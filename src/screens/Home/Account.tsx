@@ -21,11 +21,13 @@ import { useFetchEffect } from '../../libs/useFetchEffect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigationReplace } from '../../libs/rootNavigation';
 import { useLogout } from '../../libs/useUser';
+import { OnboardContext } from '../../context/onboarding-context';
 
 const FULL_WIDTH = Dimensions.get('window').width;
 
 export const Account = () => {
   const { user: currentUser, setUser } = useContext(UserContext);
+  const { dispatch } = useContext(OnboardContext);
   const { makeRequest: fetchLogout, ...handleLogout } = useLogout();
 
   const askForLogout = () =>
@@ -58,6 +60,7 @@ export const Account = () => {
       await AsyncStorage.removeItem('REFRESH_TOKEN');
       navigationReplace('Auth', { screen: 'GetStarted' });
       setUser(undefined);
+      dispatch({ type: 'RESET', value: null });
     }
   });
 

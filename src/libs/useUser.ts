@@ -5,6 +5,7 @@ import jwtDecode from 'jwt-decode';
 import { HTTPMethod, UseApiReturnProps, useApi } from './useApi';
 import { UserContext } from '../context/user.context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { OnBoardingData } from '../context/onboarding-context';
 
 export enum TypeVerification {
   EMAIL = 'EMAIL',
@@ -157,6 +158,66 @@ export const useValidatePhoneOrEmailCode = () => {
     type: TypeVerification;
   }) => {
     return makeRequest?.({ phone_number, code, email, type });
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};
+
+export const useCompleteOnboarding = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.POST,
+    '/users/complete-onboarding',
+    false
+  );
+
+  const fetch = async (data: OnBoardingData) => {
+    return makeRequest?.(data);
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};
+
+export const usCheckEmailIfExists = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.POST,
+    '/users/check-email-if-exists',
+    false
+  );
+
+  const fetch = async (data: { email: string }) => {
+    return makeRequest?.(data);
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};
+
+export const usCustomLogin = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.POST,
+    '/users/authenticate',
+    false
+  );
+
+  const fetch = async (data: { email: string; password: string }) => {
+    return makeRequest?.(data);
   };
 
   return {

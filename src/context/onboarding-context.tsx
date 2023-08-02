@@ -4,10 +4,12 @@ export type OnBoardContextType = {
   onboardingData: OnBoardingData;
   dispatch: ({
     property,
-    value
+    value,
+    type
   }: {
-    property: keyof OnBoardingData | keyof OnBoardingData['user_data'];
-    value: any;
+    property?: keyof OnBoardingData | keyof OnBoardingData['user_data'];
+    value: OnBoardingData | any;
+    type: 'BY_KEY' | 'DIRECT' | 'RESET';
   }) => void;
 };
 
@@ -41,8 +43,8 @@ export interface OnBoardingData {
     first_name: string;
     last_name: string;
     email: string;
-    password: string;
-    confirm_password: string;
+    password?: string;
+    confirm_password?: string;
   };
 }
 
@@ -50,25 +52,30 @@ const OnBoardContextComponent: React.FC<Props> = ({ children }) => {
   const reducer = (
     state: OnBoardingData,
     action: {
-      property: keyof OnBoardingData | keyof OnBoardingData['user_data'];
-      value: any;
+      property?: keyof OnBoardingData | keyof OnBoardingData['user_data'];
+      value: OnBoardingData | any;
+      type: 'BY_KEY' | 'DIRECT' | 'RESET';
     }
   ) => {
-    const { property, value } = action;
-
-    if (state.hasOwnProperty(property)) {
-      state = { ...state, [property]: value };
-    } else {
-      state = {
-        ...state,
-        user_data: {
-          ...state.user_data,
-          [property]: value
+    switch (action.type) {
+      case 'BY_KEY':
+        if (state.hasOwnProperty(action.property!)) {
+          state = { ...state, [action.property!]: action.value };
+        } else {
+          state = {
+            ...state,
+            user_data: {
+              ...state.user_data,
+              [action.property!]: action.value
+            }
+          };
         }
-      };
+        return state;
+      case 'DIRECT':
+        return action.value;
+      default:
+        return initialOnBoarding;
     }
-
-    return state;
   };
 
   const [onboardingData, dispatch] = useReducer(reducer, initialOnBoarding);
