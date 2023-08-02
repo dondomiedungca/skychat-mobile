@@ -70,6 +70,7 @@ export const StartAccount: React.FC<StartAccountScreenProps> = ({
     onData: async (data: any) => {
       if (!data?.is_exists) {
         setShowPass(false);
+        setError(undefined);
         navigation.push('Verify', { type: TypeVerification.EMAIL });
       } else {
         setShowPass(true);
