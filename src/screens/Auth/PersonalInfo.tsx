@@ -1,13 +1,7 @@
 import { AntDesign } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, {
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState
-} from 'react';
-import { Dimensions, View } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { CustomButton } from '../../components/Buttons';
 import Colors from '../../types/Colors';
@@ -24,9 +18,8 @@ import { UserContext } from '../../context/user.context';
 import PersonalInformationVector from './../../../assets/png/personal_information.jpg';
 import TextInput from '../../components/TextInput';
 import { Checkbox } from 'react-native-paper';
-import { Formik, useFormik, useFormikContext } from 'formik';
+import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { values } from 'lodash';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;

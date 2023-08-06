@@ -18,6 +18,7 @@ import { useGoogleAuth } from '../../libs/useGoogle';
 import { UserContext } from '../../context/user.context';
 import { RootParamList } from '../navigation';
 import { useFetchEffect } from '../../libs/useFetchEffect';
+import useMethodWrapper from '../../libs/useWrapper';
 
 type HangoutScreenProps = {
   navigation: StackNavigationProp<RootParamList>;
@@ -63,7 +64,9 @@ export const GetStarted: React.FC<HangoutScreenProps> = ({ navigation }) => {
           mode="outlined"
           style={{ marginTop: 10, width: 170, marginBottom: 10 }}
           label="LEARN MORE"
-          onPress={() => {}}
+          onPress={() => {
+            useMethodWrapper(navigate('Credits'));
+          }}
           textColor={Colors.primary}
         />
         <Typography

@@ -6,7 +6,6 @@ import styled from 'styled-components/native';
 import { CustomButton } from '../../components/Buttons';
 import Colors from '../../types/Colors';
 import { RootParamList } from '../navigation';
-import PhoneInput from 'react-native-phone-number-input';
 import useMethodWrapper from '../../libs/useWrapper';
 import { OnboardContext } from '../../context/onboarding-context';
 import { TypeVerification, useLoginWithPhone } from './../../libs/useUser';
@@ -83,23 +82,6 @@ const Phone = ({ navigation }: PhoneScreenProps) => {
       <StepIndicator />
       <StyledImage source={PhoneContactVector} />
 
-      <PhoneInput
-        placeholder="Enter Phone Number"
-        containerStyle={{ width: WIDTH - 83 }}
-        defaultValue={value}
-        defaultCode={country}
-        layout="first"
-        onChangeText={(text) => {
-          setValue(text);
-        }}
-        onChangeFormattedText={(text) => {
-          setFormattedValue(text);
-        }}
-        onChangeCountry={(val) => setCountry(val)}
-        withDarkTheme
-        withShadow
-        autoFocus
-      />
       <CustomButton
         disabled={handleLoginWithPhone.isLoading}
         background={

@@ -17,4 +17,5 @@ web-build/
 .metro-health-check*
 
 src/configurations/*
+google-services.json
 

@@ -14,6 +14,7 @@ import RecentConversationContextComponent from './src/context/recent-conversatio
 import ReelsUsersContextComponent from './src/context/reels-of-users.context';
 import CallListenerContextComponent from './src/context/call-listener.context';
 import OnBoardContextComponent from './src/context/onboarding-context';
+import NotificationContextComponent from './src/context/notification.context';
 
 const App = () => {
   const { appIsReady } = useCacheApp();
@@ -38,7 +39,9 @@ export default function Main() {
         <ReelsUsersContextComponent>
           <RecentConversationContextComponent>
             <CallListenerContextComponent>
-              <App />
+              <NotificationContextComponent>
+                <App />
+              </NotificationContextComponent>
             </CallListenerContextComponent>
           </RecentConversationContextComponent>
         </ReelsUsersContextComponent>

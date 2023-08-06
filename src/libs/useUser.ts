@@ -189,7 +189,7 @@ export const useCompleteOnboarding = () => {
   };
 };
 
-export const usCheckEmailIfExists = () => {
+export const useCheckEmailIfExists = () => {
   const { isLoading, data, success, error, makeRequest } = useApi(
     HTTPMethod.POST,
     '/users/check-email-if-exists',
@@ -209,7 +209,7 @@ export const usCheckEmailIfExists = () => {
   };
 };
 
-export const usCustomLogin = () => {
+export const useCustomLogin = () => {
   const { isLoading, data, success, error, makeRequest } = useApi(
     HTTPMethod.POST,
     '/users/authenticate',
@@ -217,6 +217,46 @@ export const usCustomLogin = () => {
   );
 
   const fetch = async (data: { email: string; password: string }) => {
+    return makeRequest?.(data);
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};
+
+export const useSetUserNotification = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.POST,
+    '/users/set-notification',
+    false
+  );
+
+  const fetch = async (data: { user_id: string; token: string }) => {
+    return makeRequest?.(data);
+  };
+
+  return {
+    isLoading,
+    data,
+    success,
+    error,
+    makeRequest: fetch
+  };
+};
+
+export const useFindUserById = () => {
+  const { isLoading, data, success, error, makeRequest } = useApi(
+    HTTPMethod.POST,
+    '/users/find-by-id',
+    false
+  );
+
+  const fetch = async (data: { user_id: string }) => {
     return makeRequest?.(data);
   };
 

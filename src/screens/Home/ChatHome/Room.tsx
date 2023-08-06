@@ -224,13 +224,11 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
   );
 
   useLayoutEffect(() => {
-    if (currentUser && conversation_id) {
-      fetchChats({
-        conversation_id,
-        currentLength: messages.length,
-        parties: [user.id, currentUser?.id]
-      });
-    }
+    fetchChats({
+      conversation_id,
+      currentLength: messages.length,
+      parties: [user.id, currentUser?.id || getTemporaryConversationId]
+    });
 
     socket.on('chat-onNewConversationId', (payload) =>
       setConversationId(payload)
@@ -239,7 +237,7 @@ const ChatRoom = ({ navigation, route }: RoomScreenProps) => {
     return () => {
       socket.disconnect();
     };
-  }, [conversation_id]);
+  }, []);
 
   useLayoutEffect(() => {
     socket.on('chat-receiveChat', (payload) => {

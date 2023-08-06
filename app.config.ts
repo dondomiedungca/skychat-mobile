@@ -1,4 +1,6 @@
-const configurations = require(`./src/configurations/config.${process.env.EXPO_RELEASE_CHANNEL}.json`);
+const configurations = require(`./src/configurations/config.${
+  process.env.EXPO_RELEASE_CHANNEL || 'development'
+}.json`);
 
 module.exports = {
   expo: {
@@ -13,11 +15,12 @@ module.exports = {
       supportsTablet: true
     },
     android: {
-      package: 'com.mainrow.skychat',
+      package: 'dev.dondomain.skychat',
       adaptiveIcon: {
         foregroundImage: './assets/png/adaptive-icon.png',
         backgroundColor: '#ffffff'
-      }
+      },
+      googleServicesFile: './google-services.json'
     },
     web: {
       favicon: './assets/png/icon.png'
@@ -35,7 +38,7 @@ module.exports = {
       policy: 'sdkVersion'
     },
     owner: 'dondon181409',
-    scheme: 'com.mainrow.skychat',
+    scheme: 'dev.dondomain.skychat',
     originalFullName: '@dondon181409/skychat',
     currentFullName: '@dondon181409/skychat',
     plugins: [
@@ -44,6 +47,13 @@ module.exports = {
         {
           cameraPermission: 'Allow Skychat to access your camera',
           microphonePermission: 'Allow Skychat to access your microphone'
+        }
+      ],
+      [
+        'expo-notifications',
+        {
+          icon: './assets/png/notification-icon.png',
+          color: '#ffffff'
         }
       ]
     ]

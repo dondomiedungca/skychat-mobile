@@ -38,14 +38,6 @@ const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
 const BASE_URL = Constants?.expoConfig?.extra?.API_URL;
 
-const SERVERS = {
-  iceServers: [
-    {
-      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302']
-    }
-  ]
-};
-
 type CallScreenProps = {
   navigation: StackNavigationProp<RootParamList>;
   route: RouteProp<CallStackParamList, 'CallRoom'>;
@@ -66,10 +58,8 @@ const CallRoom = ({ navigation, route }: CallScreenProps) => {
   const externalOffer = route?.params?.offer;
 
   const [localStream, setLocalStream] = useState<MediaStream | null>();
-  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(
-    new MediaStream(undefined)
-  );
-  const peerConnection = useRef<any>(
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>();
+  const peerConnection = useRef(
     new RTCPeerConnection({
       iceServers: [
         {
@@ -89,15 +79,14 @@ const CallRoom = ({ navigation, route }: CallScreenProps) => {
   const [isOpenMic, setOpenMic] = useState<boolean>(true);
   const [isFlip, setFlip] = useState<boolean>(true);
 
-  // const roomId = useMemo(() => {
-  //   const parties = [partner, user].sort(
-  //     (a, b) =>
-  //       new Date(b?.created_at!).getTime() - new Date(a?.created_at!).getTime()
-  //   );
+  const roomId = useMemo(() => {
+    const parties = [partner, user].sort(
+      (a, b) =>
+        new Date(b?.created_at!).getTime() - new Date(a?.created_at!).getTime()
+    );
 
-  //   return parties.map((p) => p?.id).join('_call_room_');
-  // }, [partner, user]);
-  const roomId = 'test_room';
+    return parties.map((p) => p?.id).join('_call_room_');
+  }, [partner, user]);
 
   /**
    * * Socket Iniiialization
@@ -135,59 +124,31 @@ const CallRoom = ({ navigation, route }: CallScreenProps) => {
       exit();
     });
     socket.on('call-addAnswer', (data) => {
-      if (!peerConnection.current.currentRemoteDescription) {
-        peerConnection.current.setRemoteDescription(
-          new RTCSessionDescription(data.answer)
-        );
+      if (peerConnection) {
+        console.log('ito answer', data.answer);
+        peerConnection.current
+          .setRemoteDescription(new RTCSessionDescription(data.answer))
+          .then((res) => console.log('resres', res))
+          .catch((err) => console.log('errerr', err));
       }
     });
     socket.on('call-handleIceCandidate', (data) => {
       if (peerConnection.current) {
         if (peerConnection.current) {
-          peerConnection?.current.addIceCandidate(
-            new RTCIceCandidate(data.candidate)
-          );
+          peerConnection?.current
+            .addIceCandidate(new RTCIceCandidate(data.candidate))
+            .then((data) => {
+              console.log('SUCCESS');
+            })
+            .catch((err) => {
+              console.log('Error', err);
+            });
         }
       }
     });
 
-    peerConnection.current.onicecandidate = (event: any) => {
-      socket.emit('call-handleIceCandidate', {
-        candidate: event.candidate,
-        roomId
-      });
-    };
-
-    peerConnection.current.addEventListener('icecandidate', (event: any) => {
-      if ((event as any)?.candidate) {
-        socket.emit('call-handleIceCandidate', {
-          candidate: (event as any)?.candidate,
-          roomId
-        });
-      }
-    });
-
-    peerConnection.current.addEventListener('track', (event: any) => {
-      remoteStream?.addTrack((event as any).track);
-    });
-
-    localStream
-      ?.getTracks()
-      .forEach((track) => peerConnection.current.addTrack(track, localStream));
-
-    return () => {
-      socket.off('call-partnerManualEnd');
-      socket.off('call-addAnswer');
-      socket.off('call-handleIceCandidate');
-    };
-  }, [localStream, remoteStream, user]);
-
-  /**
-   * * Disconnection
-   */
-  useEffect(() => {
-    (async () => {
-      const media = await mediaDevices.getUserMedia({
+    mediaDevices
+      .getUserMedia({
         audio: true,
         video: {
           mandatory: {
@@ -197,44 +158,70 @@ const CallRoom = ({ navigation, route }: CallScreenProps) => {
           },
           facingMode: 'user'
         }
+      })
+      .then((stream) => {
+        setLocalStream(stream);
+        stream.getTracks().forEach((track) => {
+          peerConnection.current.addTrack(track, stream);
+        });
+      })
+      .catch((error) => {
+        // Log error
       });
 
-      setLocalStream(media);
-    })();
+    peerConnection.current.onaddstream = (event) => {
+      setRemoteStream((event as any).stream);
+    };
 
+    peerConnection.current.onicecandidate = (event: any) => {
+      socket.emit('call-handleIceCandidate', {
+        candidate: event.candidate,
+        roomId
+      });
+    };
+
+    return () => {
+      socket.off('call-partnerManualEnd');
+      socket.off('call-addAnswer');
+      socket.off('call-handleIceCandidate');
+    };
+  }, []);
+
+  /**
+   * * Disconnection
+   */
+  useEffect(() => {
     return () => {
       socket.disconnect();
     };
   }, []);
 
-  const createOffer = async () => {
+  const createOffer = useCallback(async () => {
     if (peerConnection.current) {
-      const offer = await peerConnection.current.createOffer({
-        mandatory: {
-          OfferToReceiveAudio: true,
-          OfferToReceiveVideo: true,
-          VoiceActivityDetection: true
-        }
-      });
+      const offer = await peerConnection.current.createOffer(null);
       await peerConnection.current.setLocalDescription(offer);
       socket.emit('call-handleOffer', {
         offer,
+        type: 'offer',
         partnerId: partner?.id,
         roomId,
         caller: user
       });
     }
-  };
+  }, []);
 
-  const createAnswer = async (roomIdParam?: string, offerParam?: any) => {
-    peerConnection.current.setRemoteDescription(
-      new RTCSessionDescription(offerParam)
-    );
-    const answer = await peerConnection.current.createAnswer();
-    await peerConnection.current.setLocalDescription(answer);
+  const createAnswer = useCallback(
+    async (roomIdParam?: string, offerParam?: any) => {
+      peerConnection.current.setRemoteDescription(
+        new RTCSessionDescription(offerParam)
+      );
+      const answer = await peerConnection.current.createAnswer();
+      await peerConnection.current.setLocalDescription(answer);
 
-    socket.emit('call-addAnswer', { roomId: roomIdParam, answer });
-  };
+      socket.emit('call-addAnswer', { roomId: roomIdParam, answer });
+    },
+    []
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -261,13 +248,23 @@ const CallRoom = ({ navigation, route }: CallScreenProps) => {
   const flipCamera = useCallback(async () => {
     setFlip(!isFlip);
     if (localStream) {
-      const videoTrack = await localStream.getVideoTracks()[0];
+      const videoTrack = localStream.getVideoTracks()[0];
       videoTrack._switchCamera();
     }
   }, [isFlip, localStream]);
 
   return (
     <Container>
+      {remoteStream && (
+        <RemoteUserContainer>
+          <Video
+            mirror={!!isFlip}
+            objectFit={'cover'}
+            streamURL={remoteStream.toURL()}
+            zOrder={10}
+          />
+        </RemoteUserContainer>
+      )}
       <CurrentUserContainer>
         {isOpenCam && localStream && (
           <Video
@@ -359,7 +356,7 @@ const RemoteUserContainer = styled.View`
 const CurrentUserContainer = styled.View`
   position: relative;
   width: ${WIDTH}px;
-  height: ${HEIGHT}px;
+  height: ${HEIGHT / 2}px;
 `;
 
 const BlackCover = styled.View`

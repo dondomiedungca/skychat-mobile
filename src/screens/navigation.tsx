@@ -34,6 +34,7 @@ import PromptCall from './Home/Call/PromptCall';
 import Phone from './Auth/Phone';
 import { TypeVerification } from '../libs/useUser';
 import { PersonalInfo } from './Auth/PersonalInfo';
+import Credits from './Auth/Credits';
 
 export type RootParamList = AppStackParamList &
   AuthStackParamList &
@@ -58,6 +59,7 @@ export type AuthStackParamList = {
   PersonalInfo: {
     type: TypeVerification;
   };
+  Credits: undefined;
 };
 
 export type ChatStackParamList = {
@@ -218,6 +220,7 @@ const AuthNavigator = () => {
         <AuthStack.Screen name="Phone" component={Phone} />
         <AuthStack.Screen name="Verify" component={Verify} />
         <AuthStack.Screen name="PersonalInfo" component={PersonalInfo} />
+        <AuthStack.Screen name="Credits" component={Credits} />
       </AuthStack.Group>
     </AuthStack.Navigator>
   );

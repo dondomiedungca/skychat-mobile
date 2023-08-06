@@ -24,8 +24,8 @@ import useMethodWrapper from '../../libs/useWrapper';
 import { useGoogleAuth } from './../../libs/useGoogle';
 import {
   TypeVerification,
-  usCheckEmailIfExists,
-  usCustomLogin
+  useCheckEmailIfExists,
+  useCustomLogin
 } from './../../libs/useUser';
 import { UserContext } from '../../context/user.context';
 import { OnboardContext } from '../../context/onboarding-context';
@@ -48,8 +48,8 @@ export const StartAccount: React.FC<StartAccountScreenProps> = ({
   const { user, setUser } = useContext(UserContext);
   const { onboardingData, dispatch } = useContext(OnboardContext);
   const { promptAsync, ...handleGoogleAuth } = useGoogleAuth();
-  const { makeRequest, ...handleEmailChecking } = usCheckEmailIfExists();
-  const { makeRequest: authenticate, ...handleAuthenticate } = usCustomLogin();
+  const { makeRequest, ...handleEmailChecking } = useCheckEmailIfExists();
+  const { makeRequest: authenticate, ...handleAuthenticate } = useCustomLogin();
 
   const Header = () =>
     navigation.canGoBack() ? (
