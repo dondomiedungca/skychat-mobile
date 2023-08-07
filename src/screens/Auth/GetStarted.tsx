@@ -63,7 +63,7 @@ export const GetStarted: React.FC<HangoutScreenProps> = ({ navigation }) => {
         <CustomButton
           mode="outlined"
           style={{ marginTop: 10, width: 170, marginBottom: 10 }}
-          label="LEARN MORE"
+          label="CREDIT SECTION"
           onPress={() => {
             useMethodWrapper(navigate('Credits'));
           }}
@@ -71,7 +71,7 @@ export const GetStarted: React.FC<HangoutScreenProps> = ({ navigation }) => {
         />
         <Typography
           style={{ marginTop: 40 }}
-          title="POWERED BY MAINROW"
+          title="POWERED BY DONDOMAIN"
           color={Colors.grey_light}
           size={12}
         />
